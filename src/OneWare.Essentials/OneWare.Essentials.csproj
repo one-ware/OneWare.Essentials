@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\build\props\OmniSharp.Extensions.Language.props" />
+    <Import Project="..\..\build\props\Avalonia.props" />
+    <Import Project="..\..\build\props\Avalonia.Xaml.Interactions.props" />
+    <Import Project="..\..\build\props\Avalonia.Controls.ColorPicker.props"/>
+    <Import Project="..\..\build\props\Avalonia.Controls.DataGrid.props"/>
+    <Import Project="..\..\build\props\Avalonia.Controls.TreeDataGrid.props"/>
+    <Import Project="..\..\build\props\Avalonia.Controls.PanAndZoom.props"/>
+    <Import Project="..\..\build\props\AvaloniaEdit.props"/>
+    <Import Project="..\..\build\props\AvaloniaEdit.TextMate.props"/>
+    <Import Project="..\..\build\props\Dock.Avalonia.props" />
+    <Import Project="..\..\build\props\Prism.Avalonia.props" />
+    <Import Project="..\..\build\props\Jint.props"/>
+    <Import Project="..\..\build\props\CommunityToolkit.Mvvm.props"/>
+    <Import Project="..\..\build\props\Asmichi.ChildProcess.props"/>
+
+
+    <PropertyGroup>
+        <Version>0.1</Version>
+        <Authors>Hendrik Mennen</Authors>
+        <Company>One Ware</Company>
+        <Description>Essentials Needed for One Ware Plugin Development</Description>
+        <Copyright>Copyright © One Ware 2024</Copyright>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    </PropertyGroup>
+    
+</Project> 
