@@ -2,6 +2,33 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneWare.Essentials", "src\OneWare.Essentials\OneWare.Essentials.csproj", "{02A8AB8A-C9AB-4272-8FE6-852DAABCE52C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{293AE003-B26A-4C68-90F1-A3FB68AC6111}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{594A19A2-C55B-4CB8-8C3D-0A9F2A6B5304}"
+	ProjectSection(SolutionItems) = preProject
+		build\props\Asmichi.ChildProcess.props = build\props\Asmichi.ChildProcess.props
+		build\props\Avalonia.Controls.ColorPicker.props = build\props\Avalonia.Controls.ColorPicker.props
+		build\props\Avalonia.Controls.DataGrid.props = build\props\Avalonia.Controls.DataGrid.props
+		build\props\Avalonia.Controls.PanAndZoom.props = build\props\Avalonia.Controls.PanAndZoom.props
+		build\props\Avalonia.Controls.TreeDataGrid.props = build\props\Avalonia.Controls.TreeDataGrid.props
+		build\props\Avalonia.props = build\props\Avalonia.props
+		build\props\Avalonia.Svg.props = build\props\Avalonia.Svg.props
+		build\props\Avalonia.Xaml.Interactions.props = build\props\Avalonia.Xaml.Interactions.props
+		build\props\AvaloniaEdit.props = build\props\AvaloniaEdit.props
+		build\props\AvaloniaEdit.TextMate.props = build\props\AvaloniaEdit.TextMate.props
+		build\props\CommunityToolkit.Mvvm.props = build\props\CommunityToolkit.Mvvm.props
+		build\props\Dock.Avalonia.props = build\props\Dock.Avalonia.props
+		build\props\Jint.props = build\props\Jint.props
+		build\props\OmniSharp.Extensions.Language.props = build\props\OmniSharp.Extensions.Language.props
+		build\props\Prism.Avalonia.props = build\props\Prism.Avalonia.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "actions", "actions", "{F97A8C36-9F34-418C-A109-F89CA179D661}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\publish-nuget.yml = .github\workflows\publish-nuget.yml
+		.github\workflows\test.yml = .github\workflows\test.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +39,9 @@ Global
 		{02A8AB8A-C9AB-4272-8FE6-852DAABCE52C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02A8AB8A-C9AB-4272-8FE6-852DAABCE52C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02A8AB8A-C9AB-4272-8FE6-852DAABCE52C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{594A19A2-C55B-4CB8-8C3D-0A9F2A6B5304} = {293AE003-B26A-4C68-90F1-A3FB68AC6111}
+		{F97A8C36-9F34-418C-A109-F89CA179D661} = {293AE003-B26A-4C68-90F1-A3FB68AC6111}
 	EndGlobalSection
 EndGlobal

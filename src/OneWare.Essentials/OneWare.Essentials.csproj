@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\build\props\OmniSharp.Extensions.Language.props" />
     <Import Project="..\..\build\props\Avalonia.props" />
+    <Import Project="..\..\build\props\Avalonia.Svg.props" />
     <Import Project="..\..\build\props\Avalonia.Xaml.Interactions.props" />
     <Import Project="..\..\build\props\Avalonia.Controls.ColorPicker.props"/>
     <Import Project="..\..\build\props\Avalonia.Controls.DataGrid.props"/>
@@ -13,7 +14,6 @@
     <Import Project="..\..\build\props\Jint.props"/>
     <Import Project="..\..\build\props\CommunityToolkit.Mvvm.props"/>
     <Import Project="..\..\build\props\Asmichi.ChildProcess.props"/>
-
 
     <PropertyGroup>
         <Version>0.1</Version>
@@ -30,5 +30,4 @@
         <LangVersion>latest</LangVersion>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     </PropertyGroup>
-    
 </Project> 
