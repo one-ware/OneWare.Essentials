@@ -21,6 +21,8 @@
         <Company>One Ware</Company>
         <Description>Essentials Needed for One Ware Plugin Development</Description>
         <Copyright>Copyright © One Ware 2024</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -30,4 +32,9 @@
         <LangVersion>latest</LangVersion>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="readme.md" Pack="true" PackagePath=""/>
+    </ItemGroup>
+    
 </Project> 
