@@ -29,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "actions", "actions", "{F97A
 		.github\workflows\test.yml = .github\workflows\test.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneWare.Essentials.UnitTests", "tests\OneWare.Essentials.UnitTests\OneWare.Essentials.UnitTests.csproj", "{410C0588-65EB-45D9-96EF-54245B0D761A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{02A8AB8A-C9AB-4272-8FE6-852DAABCE52C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02A8AB8A-C9AB-4272-8FE6-852DAABCE52C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02A8AB8A-C9AB-4272-8FE6-852DAABCE52C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{410C0588-65EB-45D9-96EF-54245B0D761A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{410C0588-65EB-45D9-96EF-54245B0D761A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{410C0588-65EB-45D9-96EF-54245B0D761A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{410C0588-65EB-45D9-96EF-54245B0D761A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{594A19A2-C55B-4CB8-8C3D-0A9F2A6B5304} = {293AE003-B26A-4C68-90F1-A3FB68AC6111}
