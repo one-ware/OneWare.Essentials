@@ -36,7 +36,8 @@ namespace OneWare.Essentials.LanguageService
         {
             //return;
             if (IsActivated) return;
-
+            IsActivated = true;
+            
             if (ExecutablePath == null)
             {
                 ContainerLocator.Container.Resolve<ILogger>().Warning($"Tried to activate Language Server {Name} without executable!", new NotSupportedException(), false);
@@ -58,12 +59,13 @@ namespace OneWare.Essentials.LanguageService
                     await websocket.ConnectAsync(new Uri(ExecutablePath), _cancellation.Token);
 
                     await InitAsync(websocket.UsePipeReader().AsStream(), websocket.UsePipeWriter().AsStream());
-                    IsActivated = true;
                     return;
                 }
                 catch (Exception e)
                 {
                     ContainerLocator.Container.Resolve<ILogger>()?.Error(e.Message, e);
+
+                    IsActivated = false;
                     return;
                 }
             }
@@ -103,11 +105,11 @@ namespace OneWare.Essentials.LanguageService
                     }, _cancellation.Token);
                     
                     await InitAsync(_process.StandardOutput, _process.StandardInput);
-                    IsActivated = true;
                 }
                 catch (Exception e)
                 {
                     ContainerLocator.Container.Resolve<ILogger>()?.Error(e.Message, e);
+                    IsActivated = false;
                 }
             }
         }
