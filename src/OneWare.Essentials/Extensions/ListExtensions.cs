@@ -37,4 +37,20 @@ public static class ListExtensions
 
         return ~lower;
     }
+
+    public static void InsertSorted<TItem>(this IList<TItem> list, TItem newItem, Func<TItem, TItem, int> comparer)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            var comparision = comparer(newItem, list[i]);
+
+            if (comparision <= 0)
+            {
+                list.Insert(i, newItem);
+                return;
+            }
+        }
+        
+        list.Add(newItem);
+    }
 }
