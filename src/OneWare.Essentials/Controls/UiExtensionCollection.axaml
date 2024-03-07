@@ -1,0 +1,29 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:OneWare.Essentials.Controls"
+        xmlns:converters="clr-namespace:OneWare.Essentials.Converters"
+        xmlns:models="clr-namespace:OneWare.Essentials.Models">
+    <Design.PreviewWith>
+        <controls:UiExtensionCollection />
+    </Design.PreviewWith>
+
+    <Style Selector="controls|UiExtensionCollection">
+        <!-- Set Defaults -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ItemsControl ItemsSource="{TemplateBinding Extensions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:UiExtension">
+                            <ContentControl Content="{Binding ., Converter={x:Static converters:SharedConverters.UiExtensionToControlConverter}}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

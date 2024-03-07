@@ -4,14 +4,15 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Media;
 using OneWare.Essentials.Controls;
 using OneWare.Essentials.Enums;
+using OneWare.Essentials.Models;
 using OneWare.Essentials.ViewModels;
 
 namespace OneWare.Essentials.Services;
 
 public interface IWindowService
 {
-    public void RegisterUiExtension(string key, Control control);
-    public ObservableCollection<Control> GetUiExtensions(string key);
+    public void RegisterUiExtension<T>(string key, object? dataContext = null);
+    public ObservableCollection<UiExtension> GetUiExtensions(string key);
     public void RegisterMenuItem(string key, params MenuItemViewModel[] menuItems);
     public ObservableCollection<MenuItemViewModel> GetMenuItems(string key);
     public void Show(FlexibleWindow window, Window? owner = null);

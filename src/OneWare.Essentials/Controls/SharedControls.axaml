@@ -3,4 +3,6 @@
   <Styles.Resources>
     <ResourceDictionary />
   </Styles.Resources>
+    
+    <StyleInclude Source="avares://OneWare.Essentials/Controls/UiExtensionCollection.axaml" />
 </Styles>
