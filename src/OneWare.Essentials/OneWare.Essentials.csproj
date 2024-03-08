@@ -16,7 +16,7 @@
     <Import Project="..\..\build\props\Asmichi.ChildProcess.props"/>
 
     <PropertyGroup>
-        <Version>0.2</Version>
+        <Version>0.3</Version>
         <Authors>Hendrik Mennen</Authors>
         <Company>One Ware</Company>
         <Description>Essentials Needed for One Ware Plugin Development</Description>
