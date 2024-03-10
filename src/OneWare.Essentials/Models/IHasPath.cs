@@ -3,6 +3,6 @@
 public interface IHasPath
 {
     public string FullPath { get; }
-    public string Header { get; }
+    public string Name { get; }
     public bool LoadingFailed { get; set; }
 }

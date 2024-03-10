@@ -70,7 +70,7 @@ public abstract class ExtendedDocument : Document, IExtendedDocument
         protected set => SetProperty(ref _isDirty, value);
     }
 
-    public virtual string CloseWarningMessage => $"Do you want to save changes to the file {CurrentFile?.Header}?";
+    public virtual string CloseWarningMessage => $"Do you want to save changes to the file {CurrentFile?.Name}?";
 
     protected ExtendedDocument(string fullPath, IProjectExplorerService projectExplorerService, IDockService dockService, IWindowService windowService)
     {
@@ -134,7 +134,7 @@ public abstract class ExtendedDocument : Document, IExtendedDocument
         if (CurrentFile?.FullPath != FullPath)
         {
             CurrentFile = _projectExplorerService.Search(FullPath) as IFile ?? _projectExplorerService.GetTemporaryFile(FullPath);
-            Title = CurrentFile is ExternalFile ? $"[{CurrentFile.Header}]" : CurrentFile.Header;
+            Title = CurrentFile is ExternalFile ? $"[{CurrentFile.Name}]" : CurrentFile.Name;
         }
         _dockService.OpenFiles.TryAdd(CurrentFile, this);
         UpdateCurrentFile(oldCurrentFile);

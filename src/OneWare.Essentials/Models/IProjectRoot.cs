@@ -9,4 +9,5 @@ public interface IProjectRoot : IProjectFolder
     public bool IsActive { get; set; }
     public bool IsPathIncluded(string relativePath);
     public void IncludePath(string path);
+    public void OnExternalEntryAdded(string path, FileAttributes attributes);
 }

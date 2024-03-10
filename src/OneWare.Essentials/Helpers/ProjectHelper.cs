@@ -23,20 +23,11 @@ public static class ProjectHelper
 
     private static IEnumerable<(string path, FileAttributes attributes)> GetFileMatches(string source, Func<string,bool>? valid = null)
     {
-        var entries = Directory.EnumerateFileSystemEntries(source);
-
+        var entries = Directory.EnumerateFileSystemEntries(source, "**", SearchOption.AllDirectories);
+        
         foreach (var path in entries)
         {
             var attr = File.GetAttributes(path);
-            
-            if (attr.HasFlag(FileAttributes.Directory))
-            {
-                var subDirMatches = GetFileMatches(path,valid);
-                foreach (var subMatch in subDirMatches)
-                {
-                    yield return subMatch;
-                }
-            }
             
             var match = valid?.Invoke(path) ?? true;
             if (match) yield return (path, attr);

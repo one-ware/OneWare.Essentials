@@ -57,7 +57,7 @@ namespace OneWare.Essentials.Models
             if(other == null) return -1;
             if (Type < other.Type) return -1;
             if(Type > other.Type) return 1;
-            var stringComp = string.Compare(File.Header, other.File.Header, StringComparison.OrdinalIgnoreCase);
+            var stringComp = string.Compare(File.Name, other.File.Name, StringComparison.OrdinalIgnoreCase);
             if (stringComp < 0) return -1;
             if (StartLine < other.StartLine) return -1;
             if (Equals(other)) return 0;

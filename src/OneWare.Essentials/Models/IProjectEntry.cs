@@ -1,25 +1,17 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Avalonia.Media;
 
 namespace OneWare.Essentials.Models;
 
-public interface IProjectEntry : IHasPath, ICanHaveIcon
+/// <summary>
+/// Can be a file or a folder
+/// </summary>
+public interface IProjectEntry : IProjectExplorerNode, IHasPath
 {
-    public new string Header { get; set; }
-
-    public ObservableCollection<IProjectEntry> Items { get; }
+    public ReadOnlyObservableCollection<IProjectEntry> Entities { get; }
     
     public string RelativePath { get; }
-    
-    public ObservableCollection<IImage> IconOverlays { get; }
-    
-    public bool IsExpanded { get; set; }
-    
-    public IBrush Background { get; set; }
-    
-    public FontWeight FontWeight { get; set; }
-    
-    public float TextOpacity { get; }
 
     public IProjectRoot Root { get; }
     
