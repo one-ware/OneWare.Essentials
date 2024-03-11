@@ -6,7 +6,7 @@ namespace OneWare.Essentials.Controls
 {
     public partial class TimeSelectorBox : UserControl
     {
-        public static readonly StyledProperty<bool> AdjustInputToWaitUnitProperty =
+        public static readonly StyledProperty<bool> AdjustDisplayToWaitUnitProperty =
             AvaloniaProperty.Register<TimeSelectorBox, bool>(nameof(WaitUnit));
         
         public static readonly StyledProperty<long> FemtoSecondsProperty =
@@ -18,16 +18,22 @@ namespace OneWare.Essentials.Controls
         public static readonly StyledProperty<string> LabelProperty =
             AvaloniaProperty.Register<TimeSelectorBox, string>(nameof(Label));
         
-        public static readonly StyledProperty<long> InputProperty =
-            AvaloniaProperty.Register<TimeSelectorBox, long>(nameof(Input));
+        public static readonly StyledProperty<long> InOutProperty =
+            AvaloniaProperty.Register<TimeSelectorBox, long>(nameof(InOut));
         
         public static readonly StyledProperty<int> WaitUnitProperty =
             AvaloniaProperty.Register<TimeSelectorBox, int>(nameof(WaitUnit));
+        
+        public static readonly StyledProperty<long> DisplayProperty =
+            AvaloniaProperty.Register<TimeSelectorBox, long>(nameof(PicoSeconds));
+        
+        public static readonly StyledProperty<long> InOutTimeScaleProperty =
+            AvaloniaProperty.Register<TimeSelectorBox, long>(nameof(InOutTimeScale));
 
-        public bool AdjustInputToWaitUnit
+        public bool AdjustDisplayToWaitUnit
         {
-            get => GetValue(AdjustInputToWaitUnitProperty);
-            set => SetValue(AdjustInputToWaitUnitProperty, value);
+            get => GetValue(AdjustDisplayToWaitUnitProperty);
+            set => SetValue(AdjustDisplayToWaitUnitProperty, value);
         }
         
         public long FemtoSeconds
@@ -55,10 +61,23 @@ namespace OneWare.Essentials.Controls
             set => SetValue(WaitUnitProperty, value);
         }
 
-        public long Input
+        //1 = fs, 1000 = ps, 1000_000 = ns, 1000_000_000 = μs, 1000_000_000_000 = ms, 1000_000_000_000_000 = s
+        public long InOutTimeScale
         {
-            get => GetValue(InputProperty);
-            set => SetValue(InputProperty, value);
+            get => GetValue(InOutTimeScaleProperty);
+            set => SetValue(InOutTimeScaleProperty, value);
+        }
+        
+        public long InOut
+        {
+            get => GetValue(InOutProperty);
+            set => SetValue(InOutProperty, value);
+        }
+        
+        public long Display
+        {
+            get => GetValue(DisplayProperty);
+            set => SetValue(DisplayProperty, value);
         }
         
         public TimeSelectorBox()
@@ -70,34 +89,33 @@ namespace OneWare.Essentials.Controls
         {
             if (change.Property == WaitUnitProperty)
             {
-                if (AdjustInputToWaitUnit)
+                if (AdjustDisplayToWaitUnit)
                 {
-                    Input = PicoSeconds / (long)BigInteger.Pow(1000, WaitUnit);
+                    Display = PicoSeconds / (long)BigInteger.Pow(1000, WaitUnit);
                 }
                 else
                 {
-                    CalculateResultFromInput();
+                    CalculateResultFromDisplay();
                 }
             }
-            if (change.Property == InputProperty)
+            if (change.Property == DisplayProperty)
             {
-                CalculateResultFromInput();
+                CalculateResultFromDisplay();
             }
-            if (change.Property == FemtoSecondsProperty)
+            if (change.Property == InOutProperty)
             {
-                Input = FemtoSeconds / (long)BigInteger.Pow(1000, WaitUnit) / 1000;
-            }
-            if (change.Property == PicoSecondsProperty)
-            {
-                Input = PicoSeconds / (long)BigInteger.Pow(1000, WaitUnit);
+                FemtoSeconds = InOut * InOutTimeScale;
+                PicoSeconds = FemtoSeconds / 1000;
+                Display = PicoSeconds / (long)BigInteger.Pow(1000, WaitUnit);
             }
             base.OnPropertyChanged(change);
         }
 
-        private void CalculateResultFromInput()
+        private void CalculateResultFromDisplay()
         {
-            PicoSeconds = (long)(BigInteger.Pow(1000, WaitUnit) * Input);
+            PicoSeconds = (long)(BigInteger.Pow(1000, WaitUnit) * Display);
             FemtoSeconds = PicoSeconds * 1000;
+            InOut = FemtoSeconds / InOutTimeScale;
         }
     }
 }

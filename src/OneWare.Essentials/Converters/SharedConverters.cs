@@ -16,7 +16,6 @@ public static class SharedConverters
     public static readonly IValueConverter NoComparisonConverter = new NoComparisonConverter();
     public static readonly IValueConverter ObjectNotTypeConverter = new ObjectNotTypeConverter();
     public static readonly IValueConverter ObjectTypeConverter = new ObjectTypeConverter();
-    public static readonly IValueConverter TimeUnitConverter = new TimeUnitConverter();
     public static readonly IValueConverter PathToWindowIconConverter = new PathToWindowIconConverter();
     public static readonly IValueConverter ViewFoundConverter = new ViewFoundConverter();
     public static readonly IValueConverter AddConverter = new AddConverter();
