@@ -4,22 +4,29 @@
         xmlns:converters="clr-namespace:OneWare.Essentials.Converters"
         xmlns:models="clr-namespace:OneWare.Essentials.Models">
     <Design.PreviewWith>
-        <controls:UiExtensionCollection />
+        <controls:DocumentUiExtensionCollection />
     </Design.PreviewWith>
 
-    <Style Selector="controls|UiExtensionCollection">
+    <Style Selector="controls|DocumentUiExtensionCollection">
         <!-- Set Defaults -->
         <Setter Property="Template">
             <ControlTemplate>
                 <ItemsControl ItemsSource="{TemplateBinding Extensions}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="{TemplateBinding Orientation}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}"/>
+                            <DockPanel HorizontalAlignment="{TemplateBinding HorizontalAlignment}"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="models:UiExtension">
-                            <ContentControl Content="{Binding ., Converter={x:Static converters:SharedConverters.UiExtensionToControlConverter}}"/>
+                        <DataTemplate x:DataType="models:DocumentUiExtension">
+                            <ContentControl>
+                                <ContentControl.Content>
+                                    <MultiBinding Converter="{x:Static converters:SharedConverters.DocumentUiExtensionConverter}">
+                                        <Binding Path="$parent[controls:DocumentUiExtensionCollection].File"/>
+                                        <Binding Path="."/>
+                                    </MultiBinding>
+                                </ContentControl.Content>
+                            </ContentControl>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

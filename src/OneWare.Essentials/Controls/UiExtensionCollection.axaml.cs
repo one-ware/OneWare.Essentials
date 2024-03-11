@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls.Primitives;
+using Avalonia.Layout;
 using OneWare.Essentials.Models;
 
 namespace OneWare.Essentials.Controls;
@@ -9,29 +10,22 @@ namespace OneWare.Essentials.Controls;
 public class UiExtensionCollection : TemplatedControl
 {
     public static readonly StyledProperty<ObservableCollection<UiExtension>?> ExtensionsProperty =
-        AvaloniaProperty.Register<UiExtensionCollection, ObservableCollection<UiExtension>?>(nameof(UiExtensionCollection));
+        AvaloniaProperty.Register<UiExtensionCollection, ObservableCollection<UiExtension>?>(nameof(Extensions));
+    
+    public static readonly StyledProperty<Orientation> OrientationProperty =
+        AvaloniaProperty.Register<UiExtensionCollection, Orientation>(nameof(Orientation));
 
     protected override Type StyleKeyOverride => typeof(UiExtensionCollection);
     
     public ObservableCollection<UiExtension>? Extensions
     {
         get => GetValue(ExtensionsProperty);
-        set
-        {
-            if(Extensions != null)
-                Extensions.CollectionChanged -= OnExtensionsChanged;
-            
-            SetValue(ExtensionsProperty, value);
-            
-            if (value == null)
-                return;
-
-            value.CollectionChanged += OnExtensionsChanged;
-        } 
+        set => SetValue(ExtensionsProperty, value);
     }
     
-    private void OnExtensionsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    public Orientation Orientation
     {
-        
+        get => GetValue(OrientationProperty);
+        set => SetValue(OrientationProperty, value);
     }
 }

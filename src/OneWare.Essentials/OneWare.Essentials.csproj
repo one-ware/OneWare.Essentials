@@ -36,5 +36,12 @@
     <ItemGroup>
         <None Include="readme.md" Pack="true" PackagePath=""/>
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Controls\DocumentUiExtensionCollection.axaml.cs">
+        <DependentUpon>DocumentUiExtensionCollection.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+    </ItemGroup>
     
 </Project> 

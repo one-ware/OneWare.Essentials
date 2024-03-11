@@ -5,4 +5,5 @@
   </Styles.Resources>
     
     <StyleInclude Source="avares://OneWare.Essentials/Controls/UiExtensionCollection.axaml" />
+    <StyleInclude Source="avares://OneWare.Essentials/Controls/DocumentUiExtensionCollection.axaml" />
 </Styles>

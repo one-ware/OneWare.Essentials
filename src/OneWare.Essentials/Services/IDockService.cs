@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Avalonia.Controls;
 using Dock.Model.Core;
@@ -17,6 +18,10 @@ public interface IDockService : INotifyPropertyChanged
     public IExtendedDocument? CurrentDocument { get; }
     
     public void RegisterDocumentView<T>(params string[] extensions) where T : IExtendedDocument;
+    
+    public ObservableCollection<DocumentUiExtension> GetDocumentViewExtensions(string key);
+    
+    public void RegisterDocumentViewExtension<T>(string key, Func<IFile,object?> createDataContext);
     
     public void RegisterLayoutExtension<T>(DockShowLocation location);
     
