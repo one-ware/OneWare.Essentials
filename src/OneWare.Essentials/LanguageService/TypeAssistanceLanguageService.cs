@@ -405,7 +405,7 @@ namespace OneWare.Essentials.LanguageService
             if (location == null) return;
             
             var path = Path.GetFullPath(location.Uri.GetFileSystemPath());
-            var file = ContainerLocator.Container.Resolve<IProjectExplorerService>().Search(path) as IFile;
+            var file = ContainerLocator.Container.Resolve<IProjectExplorerService>().SearchFullPath(path) as IFile;
             file ??= ContainerLocator.Container.Resolve<IProjectExplorerService>().GetTemporaryFile(path);
             
             var dockable = await ContainerLocator.Container.Resolve<IDockService>().OpenFileAsync(file);

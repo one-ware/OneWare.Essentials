@@ -23,5 +23,5 @@ public interface IProjectExplorerNode : ICanHaveIcon, INotifyPropertyChanged
     
     public FontWeight FontWeight { get; set; }
     
-    public float TextOpacity { get; }
+    public float TextOpacity { get; set; }
 }

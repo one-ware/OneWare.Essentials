@@ -269,7 +269,7 @@ public abstract class LanguageServiceBase : ILanguageService
                 .FirstOrDefault(x => x.Key.FullPath.EqualPaths(pdp.Uri.GetFileSystemPath())).Key;
             file ??=
                 ContainerLocator.Container.Resolve<IProjectExplorerService>()
-                    .Search(pdp.Uri.GetFileSystemPath()) as IFile;
+                    .SearchFullPath(pdp.Uri.GetFileSystemPath()) as IFile;
             file ??= ContainerLocator.Container.Resolve<IProjectExplorerService>()
                 .GetTemporaryFile(pdp.Uri.GetFileSystemPath());
             ContainerLocator.Container.Resolve<IErrorService>()

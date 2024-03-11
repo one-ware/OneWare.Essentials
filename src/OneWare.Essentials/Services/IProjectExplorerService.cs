@@ -17,7 +17,8 @@ public interface IProjectExplorerService : IDockable, INotifyPropertyChanged
     public void Insert(IProjectRoot project);
     public Task RemoveAsync(params IProjectEntry[] entries);
     public Task DeleteAsync(params IProjectEntry[] entries);
-    public IProjectEntry? Search(string path, bool recursive = true);
+    public IProjectEntry? SearchName(string path, bool recursive = true);
+    public IProjectEntry? SearchFullPath(string path, bool recursive = true);
     public Task<IProjectRoot?> LoadProjectFolderDialogAsync(IProjectManager manager);
     public Task<IProjectRoot?> LoadProjectFileDialogAsync(IProjectManager manager, params FilePickerFileType[]? filters);
     public IFile GetTemporaryFile(string path);
