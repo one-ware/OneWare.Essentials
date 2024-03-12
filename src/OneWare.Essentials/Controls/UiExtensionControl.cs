@@ -43,6 +43,12 @@ public class UiExtensionControl : ContentControl
         }
     }
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        //ConstructContent();
+    }
+
     private void ConstructContent()
     {
         if (UiExtension == null)
@@ -53,6 +59,9 @@ public class UiExtensionControl : ContentControl
 
         var extension = UiExtension.CreateUiExtension(Context);
         if (extension != null)
+        {
             Content = extension;
+        }
+           
     }
 }
