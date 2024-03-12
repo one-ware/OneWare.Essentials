@@ -1,8 +1,8 @@
-﻿namespace OneWare.Essentials.Models;
+﻿using Avalonia.Controls;
 
-public class UiExtension(Type type, object? dataContext = null)
+namespace OneWare.Essentials.Models;
+
+public class UiExtension(Func<object?, Control?> createUiExtension)
 {
-    public Type Type { get; } = type;
-
-    public object? DataContext { get; } = dataContext;
+    public readonly Func<object?, Control?> CreateUiExtension = createUiExtension;
 }

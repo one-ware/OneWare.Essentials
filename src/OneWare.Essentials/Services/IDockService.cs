@@ -19,10 +19,6 @@ public interface IDockService : INotifyPropertyChanged
     
     public void RegisterDocumentView<T>(params string[] extensions) where T : IExtendedDocument;
     
-    public ObservableCollection<DocumentUiExtension> GetDocumentViewExtensions(string key);
-    
-    public void RegisterDocumentViewExtension<T>(string key, Func<IFile,object?> createDataContext);
-    
     public void RegisterLayoutExtension<T>(DockShowLocation location);
     
     public void Show<T>(DockShowLocation location = DockShowLocation.Window) where T : IDockable;

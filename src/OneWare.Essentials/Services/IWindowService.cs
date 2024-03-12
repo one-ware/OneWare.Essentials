@@ -11,7 +11,7 @@ namespace OneWare.Essentials.Services;
 
 public interface IWindowService
 {
-    public void RegisterUiExtension<T>(string key, object? dataContext = null);
+    public void RegisterUiExtension(string key, UiExtension extension);
     public ObservableCollection<UiExtension> GetUiExtensions(string key);
     public void RegisterMenuItem(string key, params MenuItemViewModel[] menuItems);
     public ObservableCollection<MenuItemViewModel> GetMenuItems(string key);

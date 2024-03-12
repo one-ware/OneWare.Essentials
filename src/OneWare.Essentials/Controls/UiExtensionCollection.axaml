@@ -11,15 +11,10 @@
         <!-- Set Defaults -->
         <Setter Property="Template">
             <ControlTemplate>
-                <ItemsControl ItemsSource="{TemplateBinding Extensions}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="{TemplateBinding Orientation}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
+                <ItemsControl ItemsPanel="{TemplateBinding ItemsPanel}" ItemsSource="{TemplateBinding Extensions}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:UiExtension">
-                            <ContentControl Content="{Binding ., Converter={x:Static converters:SharedConverters.UiExtensionToControlConverter}}"/>
+                            <controls:UiExtensionControl Context="{Binding $parent[controls:UiExtensionCollection].Context, Mode=OneWay}" UiExtension="{Binding}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
