@@ -10,9 +10,9 @@ public interface IProjectFolder : IProjectEntry
 
     public IProjectFolder AddFolder(string path, bool createNew = false);
 
-    public IProjectEntry? SearchName(string path, bool recursive = true);
+    public IProjectEntry? SearchName(string path);
     
-    public IProjectEntry? SearchRelativePath(string path, bool recursive = true);
+    public IProjectEntry? SearchRelativePath(string path);
     
-    public IProjectEntry? SearchFullPath(string path, bool recursive = true);
+    public IProjectEntry? SearchFullPath(string path);
 }

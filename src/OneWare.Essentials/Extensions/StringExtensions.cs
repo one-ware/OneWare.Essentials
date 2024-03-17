@@ -26,7 +26,13 @@
             return containsIt;
         }
 
-        public static string ToLinuxPath(this string input)
+        public static string ToPlatformPath(this string input)
+        {
+            return input.Replace('/', Path.DirectorySeparatorChar)
+                .Replace('\\', Path.DirectorySeparatorChar);
+        }
+        
+        public static string ToUnixPath(this string input)
         {
             return input.Replace('\\', '/');
         }

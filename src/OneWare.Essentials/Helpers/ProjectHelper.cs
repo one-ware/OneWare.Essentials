@@ -39,7 +39,7 @@ public static class ProjectHelper
         return include.Any(includePattern => FileSystemName.MatchesSimpleExpression(includePattern, path))  
                && (exclude is null || !exclude.Any(excludePattern => FileSystemName.MatchesSimpleExpression(excludePattern, path) 
                         || Enumerable
-                            .SkipLast<string>(path.ToLinuxPath()
+                            .SkipLast<string>(path.ToUnixPath()
                                 .Split('/', StringSplitOptions.RemoveEmptyEntries), 1)
                             .Any(x => FileSystemName.MatchesSimpleExpression(excludePattern, x))));
     }
