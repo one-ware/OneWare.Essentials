@@ -17,6 +17,8 @@ public interface IProjectExplorerNode : ICanHaveIcon, INotifyPropertyChanged
     
     public ObservableCollection<IImage> IconOverlays { get; }
     
+    public ObservableCollection<IImage> RightIcons { get; }
+    
     public bool IsExpanded { get; set; }
     
     public IBrush Background { get; set; }

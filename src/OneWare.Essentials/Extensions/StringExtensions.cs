@@ -11,7 +11,7 @@
 
         public static bool EqualPaths(this string input, string otherPath)
         {
-            if(string.IsNullOrWhiteSpace(input) || string.IsNullOrWhiteSpace(otherPath)) return false;
+            if(string.IsNullOrWhiteSpace(input) || string.IsNullOrWhiteSpace(otherPath)) return input.Trim() == otherPath.Trim();
             return Path.GetFullPath(input).TrimEnd('\\').Equals(Path.GetFullPath(otherPath).TrimEnd('\\'),
                 StringComparison.InvariantCultureIgnoreCase);
         }
