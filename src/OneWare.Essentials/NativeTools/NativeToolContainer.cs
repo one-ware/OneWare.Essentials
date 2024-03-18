@@ -2,10 +2,14 @@ using OneWare.Essentials.Helpers;
 
 namespace OneWare.Essentials.NativeTools;
 
-public class NativeToolContainer(string id, string fullPath)
+public class NativeToolContainer(string id, string fullPath, Version version)
 {
     public string Id { get; } = id;
+    
     public string FullPath { get; } = fullPath;
+    
+    public Version Version { get; } = version;
+
     public Dictionary<PlatformId, NativeTool> Platforms { get; } = new();
 
     public NativeTool AddPlatform(PlatformId platform, string url)
