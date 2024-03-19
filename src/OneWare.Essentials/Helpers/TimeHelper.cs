@@ -6,7 +6,10 @@ public static class TimeHelper
     public static string ConvertNumber(long offset, long timeScale)
     {
         var unitStr = " ps";
-            
+
+        bool invert = offset < 0;
+        if (invert) offset *= -1;
+        
         var ps = offset / 1000 * timeScale;
         decimal drawNumber = ps;
 
@@ -34,6 +37,7 @@ public static class TimeHelper
                 break;
         }
 
+        if (invert) drawNumber *= -1;
         return Math.Round(drawNumber, 1) + " " + unitStr;
     }
 }
