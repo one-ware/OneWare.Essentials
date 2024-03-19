@@ -138,8 +138,8 @@ public abstract class PackageModel(
         if (Package.Id == null) throw new NullReferenceException(nameof(Package.Id));
 
         var currentTarget = PlatformHelper.Platform.ToString().ToLower();
-        
-        var target = InstalledVersion!.Targets?.FirstOrDefault(x => x.Target?.Replace("-", "") == currentTarget);
+
+        var target = SelectTarget(_installedVersion!);
         
         if(target != null) await PrepareRemoveAsync(target);
         
