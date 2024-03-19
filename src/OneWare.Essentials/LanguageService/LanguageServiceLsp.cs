@@ -93,7 +93,7 @@ namespace OneWare.Essentials.LanguageService
 
                 try
                 {
-                    _process = ChildProcess.Start(processStartInfo);
+                    _process = ContainerLocator.Container.Resolve<IChildProcessService>().StartChildProcess(processStartInfo);
 
                     var reader = new StreamReader(_process.StandardError);
                     _ = Task.Run(() =>
@@ -105,6 +105,10 @@ namespace OneWare.Essentials.LanguageService
                     }, _cancellation.Token);
                     
                     await InitAsync(_process.StandardOutput, _process.StandardInput);
+
+                    await _process.WaitForExitAsync();
+
+                    await DeactivateAsync();
                 }
                 catch (Exception e)
                 {

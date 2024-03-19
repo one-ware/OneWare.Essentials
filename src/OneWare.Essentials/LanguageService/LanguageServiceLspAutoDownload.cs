@@ -1,12 +1,21 @@
-﻿namespace OneWare.Essentials.LanguageService;
+﻿using OneWare.Essentials.Enums;
+using OneWare.Essentials.Models;
+using OneWare.Essentials.Packages;
+using OneWare.Essentials.Services;
+using Prism.Ioc;
+
+namespace OneWare.Essentials.LanguageService;
 
 public abstract class LanguageServiceLspAutoDownload : LanguageServiceLsp
 {
-    private readonly Func<Task<bool>> _installTask;
-    protected LanguageServiceLspAutoDownload(IObservable<string> executablePath, Func<Task<bool>> install, string name, string? workspace) 
+    private readonly IPackageService _packageService;
+    private Package _package;
+    
+    protected LanguageServiceLspAutoDownload(IObservable<string> executablePath, Package package, string name, string? workspace, IPackageService packageService) 
         : base(name, workspace)
     {
-        _installTask = install;
+        _package = package;
+        _packageService = packageService;
         
         executablePath.Subscribe(x =>
         {
@@ -16,9 +25,9 @@ public abstract class LanguageServiceLspAutoDownload : LanguageServiceLsp
     
     public override async Task ActivateAsync()
     {
-        if (!File.Exists(ExecutablePath))
+        if (_packageService.Packages.TryGetValue(_package.Id!, out var model) && model is {Status: PackageStatus.Available or PackageStatus.UpdateAvailable})
         {
-            if(!await _installTask.Invoke()) return;
+            if(!await _packageService.InstallAsync(_package)) return;
         }
         await base.ActivateAsync();
     }
