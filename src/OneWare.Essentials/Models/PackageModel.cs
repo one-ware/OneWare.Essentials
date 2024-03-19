@@ -91,6 +91,8 @@ public abstract class PackageModel(
                     return false;
                 }
                 
+                PlatformHelper.ChmodFolder(ExtractionFolder);
+                
                 applicationStateService.RemoveState(state);
                 
                 Install(target);
