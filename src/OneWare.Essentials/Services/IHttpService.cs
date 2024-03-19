@@ -1,4 +1,5 @@
-﻿using Avalonia.Media.Imaging;
+﻿using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
 namespace OneWare.Essentials.Services;
 
@@ -15,7 +16,7 @@ public interface IHttpService
     public Task<bool> DownloadAndExtractArchiveAsync(string url, string location, IProgress<float>? progress = null,
         TimeSpan timeout = default, CancellationToken cancellationToken = default);
     
-    public Task<Bitmap?> DownloadImageAsync(string url, TimeSpan timeout = default,
+    public Task<IImage?> DownloadImageAsync(string url, TimeSpan timeout = default,
         CancellationToken cancellationToken = default);
     
     public Task<string?> DownloadTextAsync(string url, TimeSpan timeout = default, 
