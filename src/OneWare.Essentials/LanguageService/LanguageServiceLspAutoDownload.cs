@@ -32,7 +32,6 @@ public abstract class LanguageServiceLspAutoDownload : LanguageServiceLsp
         {
             if (!_enableAutoDownload) return;
             if(!await _packageService.InstallAsync(_package)) return;
-            await Task.Delay(500);
         }
         await base.ActivateAsync();
     }
