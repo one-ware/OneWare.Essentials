@@ -58,20 +58,21 @@ public abstract class PackageModel(
         if(!await RemoveAsync()) return false;
         return await DownloadAsync(version);
     }
+
+    protected virtual PackageTarget? SelectTarget(PackageVersion version)
+    {
+        var currentTarget = PlatformHelper.Platform.ToString().ToLower();
+        var target = version.Targets?.FirstOrDefault(x => x.Target?.Replace("-", "") == currentTarget);
+        return target;
+    }
     
     public async Task<bool> DownloadAsync(PackageVersion version)
     {
         try
         {
             Status = PackageStatus.Installing;
-            
-            var currentTarget = PlatformHelper.Platform.ToString().ToLower();
 
-            var selectedVersion = version;
-            
-            var target = Package.Versions?
-                .FirstOrDefault(x => x == selectedVersion)?
-                .Targets?.FirstOrDefault(x => x.Target?.Replace("-", "") == currentTarget);
+            var target = SelectTarget(version);
 
             if (target is {Url: not null})
             {
@@ -94,7 +95,7 @@ public abstract class PackageModel(
                 
                 Install(target);
                 
-                InstalledVersion = selectedVersion;
+                InstalledVersion = version;
                 
                 Installed?.Invoke(this, EventArgs.Empty);
             }
