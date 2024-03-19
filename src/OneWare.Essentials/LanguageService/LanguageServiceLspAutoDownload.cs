@@ -28,7 +28,7 @@ public abstract class LanguageServiceLspAutoDownload : LanguageServiceLsp
     
     public override async Task ActivateAsync()
     {
-        if (_packageService.Packages.TryGetValue(_package.Id!, out var model) && model is {Status: PackageStatus.Available or PackageStatus.UpdateAvailable or PackageStatus.Installing})
+        if (_packageService.GetPackageModel(_package) is {Status: PackageStatus.Available or PackageStatus.UpdateAvailable or PackageStatus.Installing})
         {
             if (!_enableAutoDownload) return;
             if(!await _packageService.InstallAsync(_package)) return;

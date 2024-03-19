@@ -15,6 +15,8 @@ public interface IPackageService
     
     public void RegisterPackageRepository(string url);
 
+    public PackageModel? GetPackageModel(Package package);
+
     public Task<bool> LoadPackagesAsync();
 
     public Task<bool> InstallAsync(Package package);
