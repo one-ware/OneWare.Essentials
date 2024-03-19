@@ -1,8 +1,6 @@
 ﻿using OneWare.Essentials.Enums;
-using OneWare.Essentials.Models;
-using OneWare.Essentials.Packages;
+using OneWare.Essentials.PackageManager;
 using OneWare.Essentials.Services;
-using Prism.Ioc;
 
 namespace OneWare.Essentials.LanguageService;
 

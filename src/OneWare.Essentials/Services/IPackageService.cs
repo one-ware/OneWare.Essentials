@@ -1,5 +1,5 @@
 ﻿using OneWare.Essentials.Models;
-using OneWare.Essentials.Packages;
+using OneWare.Essentials.PackageManager;
 
 namespace OneWare.Essentials.Services;
 
