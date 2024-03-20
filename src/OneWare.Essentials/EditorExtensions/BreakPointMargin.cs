@@ -93,6 +93,8 @@ namespace OneWare.Essentials.EditorExtensions
                 _previewLine =
                     textView.Document.GetLineByOffset(offset).LineNumber; // convert from text line to visual line.
 
+            Cursor = Cursor.Parse("Hand");
+            
             InvalidateVisual();
         }
 
