@@ -6,20 +6,17 @@ using OneWare.Essentials.Services;
 
 namespace OneWare.Essentials.Models;
 
-public abstract class PackageModel(
-    Package package,
-    string packageType,
-    string extractionFolder,
-    IHttpService httpService,
-    ILogger logger,
-    IApplicationStateService applicationStateService)
-    : ObservableObject
+public abstract class PackageModel : ObservableObject
 {
     private PackageVersion? _installedVersion;
     public PackageVersion? InstalledVersion
     {
         get => _installedVersion;
-        set => SetProperty(ref _installedVersion, value);
+        set
+        {
+            SetProperty(ref _installedVersion, value);
+            UpdateStatus();
+        }
     }
     
     private string? _warningText;
@@ -33,25 +30,55 @@ public abstract class PackageModel(
     public PackageStatus Status
     {
         get => _status;
-        set => SetProperty(ref _status, value);
+        protected set => SetProperty(ref _status, value);
     }
     
     private float _progress;
+    private Package _package;
+    private readonly IHttpService _httpService;
+    private readonly ILogger _logger;
+    private readonly IApplicationStateService _applicationStateService;
+
+    protected PackageModel(Package package,
+        string packageType,
+        string extractionFolder,
+        IHttpService httpService,
+        ILogger logger,
+        IApplicationStateService applicationStateService)
+    {
+        _package = package;
+        _httpService = httpService;
+        _logger = logger;
+        _applicationStateService = applicationStateService;
+        ExtractionFolder = extractionFolder;
+        PackageType = packageType;
+        
+        UpdateStatus();
+    }
+
     public float Progress
     {
         get => _progress;
         private set => SetProperty(ref _progress, value);
     }
     
-    protected string ExtractionFolder { get; } = extractionFolder;
+    protected string ExtractionFolder { get; }
 
-    protected string PackageType { get; } = packageType;
+    protected string PackageType { get; }
 
     public event EventHandler? Installed;
 
     public event EventHandler? Removed;
 
-    public Package Package { get; set; } = package;
+    public Package Package
+    {
+        get => _package;
+        set
+        {
+            SetProperty(ref _package, value);
+            UpdateStatus();
+        }
+    }
 
     public async Task<bool> UpdateAsync(PackageVersion version)
     {
@@ -76,7 +103,7 @@ public abstract class PackageModel(
 
             if (target is {Url: not null})
             {
-                var state = applicationStateService.AddState($"Downloading {Package.Id}...", AppState.Loading);
+                var state = _applicationStateService.AddState($"Downloading {Package.Id}...", AppState.Loading);
                 
                 var progress = new Progress<float>(x =>
                 {
@@ -85,7 +112,7 @@ public abstract class PackageModel(
                 });
                 
                 //Download
-                if (!await httpService.DownloadAndExtractArchiveAsync(target.Url, ExtractionFolder, progress))
+                if (!await _httpService.DownloadAndExtractArchiveAsync(target.Url, ExtractionFolder, progress))
                 {
                     Status = PackageStatus.Available;
                     return false;
@@ -93,7 +120,7 @@ public abstract class PackageModel(
                 
                 PlatformHelper.ChmodFolder(ExtractionFolder);
                 
-                applicationStateService.RemoveState(state);
+                _applicationStateService.RemoveState(state);
                 
                 Install(target);
                 
@@ -108,7 +135,7 @@ public abstract class PackageModel(
         }
         catch (Exception e)
         {
-            logger.Error(e.Message, e);
+            _logger.Error(e.Message, e);
             Status = PackageStatus.Available;
             return false;
         }
@@ -153,7 +180,7 @@ public abstract class PackageModel(
             }
             catch (Exception e)
             {
-                logger.Error(e.Message, e);
+                _logger.Error(e.Message, e);
                 return false;
             }
         }
@@ -165,5 +192,28 @@ public abstract class PackageModel(
         Removed?.Invoke(this, EventArgs.Empty);
 
         return true;
+    }
+
+    private void UpdateStatus()
+    {
+        var lV = Version.TryParse(Package.Versions?.LastOrDefault()?.Version, out var lastVersion);
+        var iV = Version.TryParse(InstalledVersion?.Version ?? "", out var installedVersion);
+        
+        if (lV && iV && lastVersion > installedVersion)
+        {
+            Status = PackageStatus.UpdateAvailable;
+        }
+        else if (iV)
+        {
+            Status = PackageStatus.Installed;
+        }
+        else if (!iV && lV)
+        {
+            Status = PackageStatus.Available;
+        }
+        else
+        {
+            Status = PackageStatus.Unavailable;
+        }
     }
 }
