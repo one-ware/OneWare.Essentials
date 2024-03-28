@@ -12,7 +12,13 @@ public class ExternalFile : ObservableObject, IFile
 {
     public string Extension => Path.GetExtension(FullPath);
     public string FullPath { get; set; }
-    public string Name => Path.GetFileName(FullPath);
+
+    public string Name
+    {
+        get => Path.GetFileName(FullPath);
+        set => FullPath = Path.Combine(Path.GetDirectoryName(FullPath)!, value);
+    }
+    
     public bool LoadingFailed { get; set; }
     public DateTime LastSaveTime { get; set; }
     
