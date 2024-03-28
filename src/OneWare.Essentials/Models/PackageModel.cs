@@ -104,7 +104,7 @@ public abstract class PackageModel : ObservableObject
             if (target is {Url: not null})
             {
                 var state = _applicationStateService.AddState($"Downloading {Package.Id}...", AppState.Loading);
-                
+
                 var progress = new Progress<float>(x =>
                 {
                     Progress = x;
@@ -112,15 +112,18 @@ public abstract class PackageModel : ObservableObject
                 });
                 
                 //Download
-                if (!await _httpService.DownloadAndExtractArchiveAsync(target.Url, ExtractionFolder, progress))
+                var result = await _httpService.DownloadAndExtractArchiveAsync(target.Url, ExtractionFolder, progress);
+
+                _applicationStateService.RemoveState(state);
+
+                if (!result)
                 {
                     Status = PackageStatus.Available;
+                    _applicationStateService.RemoveState(state);
                     return false;
                 }
                 
                 PlatformHelper.ChmodFolder(ExtractionFolder);
-                
-                _applicationStateService.RemoveState(state);
                 
                 Install(target);
                 
