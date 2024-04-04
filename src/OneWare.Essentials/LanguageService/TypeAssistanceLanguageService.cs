@@ -510,22 +510,20 @@ namespace OneWare.Essentials.LanguageService
         protected virtual async Task UpdateSymbolsAsync()
         {
             LastDocumentSymbols = await Service.RequestSymbolsAsync(CurrentFile.FullPath);
-
-            return;
             
-            if (LastDocumentSymbols is not null)
-            {
-                var segments = LastDocumentSymbols
-                    .Where(x => x.IsDocumentSymbolInformation && x.SymbolInformation != null)
-                    .Select(x => x.SymbolInformation!.Location.Range.GenerateTextModification(Editor.CurrentDocument, Brushes.Chocolate))
-                    .ToArray();
-                
-                Editor.Editor.ModificationService.SetModification("symbol", segments);
-            }
-            else
-            {
-                Editor.Editor.ModificationService.ClearModification("symbols");
-            }
+            // if (LastDocumentSymbols is not null)
+            // {
+            //     var segments = LastDocumentSymbols
+            //         .Where(x => x.IsDocumentSymbolInformation && x.SymbolInformation != null)
+            //         .Select(x => x.SymbolInformation!.Location.Range.GenerateTextModification(Editor.CurrentDocument, Brushes.Chocolate))
+            //         .ToArray();
+            //     
+            //     Editor.Editor.ModificationService.SetModification("symbol", segments);
+            // }
+            // else
+            // {
+            //     Editor.Editor.ModificationService.ClearModification("symbols");
+            // }
         }
 
         protected virtual async Task ShowSignatureHelpAsync(SignatureHelpTriggerKind triggerKind, string? triggerChar, bool retrigger, SignatureHelp? activeSignatureHelp)

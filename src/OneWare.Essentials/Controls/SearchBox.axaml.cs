@@ -34,7 +34,7 @@ namespace OneWare.Essentials.Controls
         {
             InitializeComponent();
 
-            SearchTextBox.WhenValueChanged<TextBox, string>(x => x.Text).Subscribe(x => OnTextAddedEvent());
+            SearchTextBox.WhenValueChanged(x => x.Text).Subscribe(_ => OnTextAddedEvent());
 
             KeyDown += SearchTextBox_KeyDown;
         }
