@@ -8,7 +8,7 @@ namespace OneWare.Essentials.Converters
         public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
             for (var i = 0; i < values.Count; i++)
-                if (values[i] != values[0])
+                if (!values[i]?.Equals(values[0]) ?? false)
                     return false;
             return true;
         }
