@@ -2,6 +2,7 @@
 using AvaloniaEdit;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Indentation;
+using ImTools;
 using OneWare.Essentials.EditorExtensions;
 using OneWare.Essentials.Models;
 using OneWare.Essentials.Services;
@@ -16,10 +17,12 @@ namespace OneWare.Essentials.LanguageService
         public string? LineCommentSequence { get; protected init; }
         protected IEditor Editor { get; }
         protected TextEditor CodeBox => Editor.Editor;
-        protected IFile CurrentFile => Editor.CurrentFile ?? throw new NullReferenceException(nameof(Editor.CurrentFile));
-        
+
+        protected IFile CurrentFile =>
+            Editor.CurrentFile ?? throw new NullReferenceException(nameof(Editor.CurrentFile));
+
         protected IIndentationStrategy? IndentationStrategy { get; init; }
-        
+
         protected IFormattingStrategy? FormattingStrategy { get; init; }
 
         protected CompletionWindow? Completion { get; set; }
@@ -29,7 +32,7 @@ namespace OneWare.Essentials.LanguageService
         protected TextInputWindow? TextInput { get; set; }
 
         public IFoldingStrategy? FoldingStrategy { get; protected init; }
-        
+
         protected bool IsOpen { get; private set; }
         protected bool IsAttached { get; private set; }
 
@@ -40,7 +43,7 @@ namespace OneWare.Essentials.LanguageService
         {
             Editor = editor;
         }
-        
+
         protected virtual void OnAssistanceActivated()
         {
             AssistanceActivated?.Invoke(this, EventArgs.Empty);
@@ -60,7 +63,7 @@ namespace OneWare.Essentials.LanguageService
         {
             IsOpen = false;
         }
-        
+
         public virtual void Attach()
         {
             IsAttached = true;
@@ -76,19 +79,31 @@ namespace OneWare.Essentials.LanguageService
         {
             if (ContainerLocator.Container.Resolve<ISettingsService>().GetSettingValue<bool>("Editor_UseAutoBracket"))
             {
-                var autoBracket = e.Text switch
-                { 
-                    "{" => "}",
-                    "(" => ")",
-                    _ => null
-                };
-
-                if (autoBracket == null) return Task.CompletedTask;
-            
-                CodeBox.TextArea.Document.Insert(CodeBox.TextArea.Caret.Offset, autoBracket);
-                CodeBox.CaretOffset -= autoBracket.Length;
+                if (CodeBox.CaretOffset > CodeBox.Document.TextLength || CodeBox.CaretOffset < 2) return Task.CompletedTask;
+                
+                var lastChar = CodeBox.Document.Text[CodeBox.CaretOffset - 2];
+                
+                switch (e.Text)
+                {
+                    case "{":
+                        CodeBox.TextArea.Document.Insert(CodeBox.TextArea.Caret.Offset, "}");
+                        CodeBox.CaretOffset--;
+                        break;
+                    case "(":
+                        CodeBox.TextArea.Document.Insert(CodeBox.TextArea.Caret.Offset, ")");
+                        CodeBox.CaretOffset--;
+                        break;
+                    case ")" when lastChar is '(':
+                        CodeBox.TextArea.Document.Remove(CodeBox.TextArea.Caret.Offset-1, 1);
+                        CodeBox.CaretOffset++;
+                        break;
+                    case "}" when lastChar is '}':
+                        CodeBox.TextArea.Document.Remove(CodeBox.TextArea.Caret.Offset-1, 1);
+                        CodeBox.CaretOffset++;
+                        break;
+                }
             }
-            
+
             return Task.CompletedTask;
         }
 
@@ -135,16 +150,16 @@ namespace OneWare.Essentials.LanguageService
 
         public virtual void Format()
         {
-            if(FormattingStrategy != null) FormattingStrategy.Format(CodeBox.Document);
+            if (FormattingStrategy != null) FormattingStrategy.Format(CodeBox.Document);
             else IndentationStrategy?.IndentLines(CodeBox.Document, 1, CodeBox.Document.LineCount);
         }
 
         #region Comment
-        
+
         public virtual void Comment()
         {
             if (LineCommentSequence is null) return;
-            
+
             int startLine, endLine;
             if (!CodeBox.TextArea.Selection.IsEmpty)
             {
@@ -164,11 +179,11 @@ namespace OneWare.Essentials.LanguageService
                 CodeBox.Document.Replace(CodeBox.Document.Lines[i - 1].Offset, 0, LineCommentSequence);
             CodeBox.Document.EndUpdate();
         }
-        
+
         public virtual void Uncomment()
         {
             if (LineCommentSequence is null) return;
-            
+
             int startLine, endLine;
             if (!CodeBox.TextArea.Selection.IsEmpty)
             {
