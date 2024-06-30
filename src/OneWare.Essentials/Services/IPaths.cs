@@ -17,4 +17,5 @@ public interface IPaths
     public string NativeToolsDirectory { get; }
     public string PluginsDirectory { get; }
     public string ChangelogUrl { get; }
+    public string UpdateInfoUrl { get; }
 }

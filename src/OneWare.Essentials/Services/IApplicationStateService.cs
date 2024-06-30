@@ -12,4 +12,10 @@ public interface IApplicationStateService
     public void RemoveState(ApplicationProcess key, string finishMessage = "Done");
     
     public Task TerminateActiveDialogAsync();
+
+    public void RegisterShutdownAction(Action action);
+
+    public void ExecuteShutdownActions();
+
+    public void TryShutdown();
 }
