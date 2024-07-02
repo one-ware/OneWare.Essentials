@@ -21,11 +21,11 @@ namespace OneWare.Essentials.Helpers
         Wasm,
         Unknown
     }
-    
+
     public static class PlatformHelper
     {
         public static PlatformId Platform { get; }
-        
+
         public static string ExecutableExtension { get; } = string.Empty;
 
         static PlatformHelper()
@@ -63,12 +63,12 @@ namespace OneWare.Essentials.Helpers
                 Platform = PlatformId.Wasm;
             }
         }
-        
+
         public static bool Exists(string path)
         {
             return File.Exists(path) || ExistsOnPath(path);
         }
-        
+
         public static bool ExistsOnPath(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName)) return false;
@@ -91,7 +91,7 @@ namespace OneWare.Essentials.Helpers
 
             return null;
         }
-        
+
         public static void OpenHyperLink(string link)
         {
             try
@@ -105,7 +105,8 @@ namespace OneWare.Essentials.Helpers
             }
             catch (Exception e)
             {
-                ContainerLocator.Container.Resolve<ILogger>()?.Error("Failed open: " + link + " | " + e.Message, e, true, true);
+                ContainerLocator.Container.Resolve<ILogger>()
+                    ?.Error("Failed open: " + link + " | " + e.Message, e, true, true);
             }
         }
 
@@ -115,8 +116,8 @@ namespace OneWare.Essentials.Helpers
             {
                 if (Path.HasExtension(path)) path = Path.GetDirectoryName(path) ?? "";
                 else path = Path.GetFullPath(path);
-                
-                if(string.IsNullOrEmpty(path)) return;
+
+                if (string.IsNullOrEmpty(path)) return;
 
                 Process.Start(new ProcessStartInfo
                 {
@@ -127,12 +128,13 @@ namespace OneWare.Essentials.Helpers
             }
             catch (Exception e)
             {
-                ContainerLocator.Container.Resolve<ILogger>().Error("Can't open " + path + " in explorer. " + e, e, true, true);
+                ContainerLocator.Container.Resolve<ILogger>()
+                    .Error("Can't open " + path + " in explorer. " + e, e, true, true);
             }
         }
-        
+
         #region File Management
-        
+
         public static void CopyFile(string sourcePath, string destinationPath, bool overwrite = false)
         {
             File.Copy(sourcePath, destinationPath, overwrite);
@@ -142,14 +144,14 @@ namespace OneWare.Essentials.Helpers
         public static void CopyDirectory(string sourcePath, string destPath)
         {
             var dir = new DirectoryInfo(sourcePath);
-            
+
             if (!dir.Exists)
                 throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
-            
+
             var dirs = dir.GetDirectories();
-            
+
             Directory.CreateDirectory(destPath);
-            
+
             foreach (var file in dir.GetFiles())
             {
                 var targetFilePath = Path.Combine(destPath, file.Name);
@@ -163,7 +165,7 @@ namespace OneWare.Essentials.Helpers
                 CopyDirectory(subDir.FullName, newDestinationDir);
             }
         }
-        
+
         public static void ExecBash(string cmd)
         {
             var escapedArgs = cmd.Replace("\"", "\\\"");
@@ -203,16 +205,18 @@ namespace OneWare.Essentials.Helpers
 
         public static void ChmodFile(string path)
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.ProcessArchitecture is not Architecture.Wasm) 
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                RuntimeInformation.ProcessArchitecture is not Architecture.Wasm)
                 ExecBash($"chmod 777 '{path}'");
         }
 
         public static void ChmodFolder(string path)
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.ProcessArchitecture is not Architecture.Wasm) 
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                RuntimeInformation.ProcessArchitecture is not Architecture.Wasm)
                 ExecBash($"chmod -R 777 '{path}'");
         }
-        
+
         #endregion
 
         #region BringWindowToFront WINDOWS
@@ -277,44 +281,69 @@ namespace OneWare.Essentials.Helpers
         }
 
         #endregion
-        
-        #region Window Styles
-        
-        public static Thickness WindowsOnlyBorder => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime ? new Thickness(1) : new
-            Thickness(0);
 
-        public static CornerRadius WindowsCornerRadius => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+        #region Window Styles
+
+        public static Thickness WindowsOnlyBorder =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+                ? new Thickness(1)
+                : new
+                    Thickness(0);
+
+        public static CornerRadius WindowsCornerRadius => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                                                          Application.Current?.ApplicationLifetime is
+                                                              IClassicDesktopStyleApplicationLifetime
             ? (Environment.OSVersion.Version.Build >= 22000 ? new CornerRadius(8) : new CornerRadius(0))
             : new CornerRadius(0);
-        
-        public static CornerRadius WindowsCornerRadiusBottom => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-            ? (Environment.OSVersion.Version.Build >= 22000 ? new CornerRadius(0,0,8,8) : new CornerRadius(0))
+
+        public static CornerRadius WindowsCornerRadiusBottom => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                                                                Application.Current?.ApplicationLifetime is
+                                                                    IClassicDesktopStyleApplicationLifetime
+            ? (Environment.OSVersion.Version.Build >= 22000 ? new CornerRadius(0, 0, 8, 8) : new CornerRadius(0))
             : new CornerRadius(0);
-        
-        public static CornerRadius WindowsCornerRadiusBottomLeft => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-            ? (Environment.OSVersion.Version.Build >= 22000 ? new CornerRadius(0,0,0,8) : new CornerRadius(0))
-            : new CornerRadius(0);
-        
-        public static CornerRadius WindowsCornerRadiusBottomRight => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-            ? (Environment.OSVersion.Version.Build >= 22000 ? new CornerRadius(0,0,8,0) : new CornerRadius(0))
-            : new CornerRadius(0);
+
+        public static CornerRadius WindowsCornerRadiusBottomLeft =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+                ? (Environment.OSVersion.Version.Build >= 22000 ? new CornerRadius(0, 0, 0, 8) : new CornerRadius(0))
+                : new CornerRadius(0);
+
+        public static CornerRadius WindowsCornerRadiusBottomRight =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+                ? (Environment.OSVersion.Version.Build >= 22000 ? new CornerRadius(0, 0, 8, 0) : new CornerRadius(0))
+                : new CornerRadius(0);
+
         #endregion
-        
+
         #region Keys
-        
+
         public static KeyModifiers ControlKey => RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
             ? KeyModifiers.Meta
             : KeyModifiers.Control;
-        
+
+        public static bool IsControl(KeyEventArgs e)
+        {
+            switch (Platform)
+            {
+                case PlatformId.OsxArm64:
+                case PlatformId.OsxX64:
+                    return e.KeyModifiers.HasFlag(ControlKey) || e.Key is Key.LWin or Key.RWin;
+                default:
+                    return e.KeyModifiers.HasFlag(ControlKey) || e.Key is Key.LeftCtrl or Key.RightCtrl;
+            }
+        }
+
         #endregion
-        
+
         private static readonly IPEndPoint DefaultLoopbackEndpoint = new(IPAddress.Loopback, 0);
 
         public static int GetAvailablePort()
         {
             using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.Bind(DefaultLoopbackEndpoint);
-            
+
             return (socket.LocalEndPoint as IPEndPoint)?.Port ?? throw new Exception("Error getting free port!");
         }
     }
