@@ -35,7 +35,6 @@ namespace OneWare.Essentials.LanguageService
 
         public override async Task ActivateAsync()
         {
-            //return;
             if (IsActivated) return;
             IsActivated = true;
             

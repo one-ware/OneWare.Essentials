@@ -66,6 +66,8 @@ public abstract class PackageModel : ObservableObject
 
     protected string PackageType { get; }
 
+    public event EventHandler<Task<bool>>? Installing; 
+    
     public event EventHandler? Installed;
 
     public event EventHandler? Removed;
@@ -93,7 +95,16 @@ public abstract class PackageModel : ObservableObject
         return target;
     }
     
-    public async Task<bool> DownloadAsync(PackageVersion version)
+    public Task<bool> DownloadAsync(PackageVersion version)
+    {
+        var task = PerformDownloadAsync(version);
+
+        Installing?.Invoke(this, task);
+        
+        return task;
+    }
+
+    private async Task<bool> PerformDownloadAsync(PackageVersion version)
     {
         try
         {
@@ -130,6 +141,8 @@ public abstract class PackageModel : ObservableObject
                 InstalledVersion = version;
                 
                 Installed?.Invoke(this, EventArgs.Empty);
+
+                await Task.Delay(100);
             }
             else
             {
@@ -144,7 +157,7 @@ public abstract class PackageModel : ObservableObject
         }
         return true;
     }
-
+    
     /// <summary>
     /// Gets called after downloading and extracting
     /// Make sure to set Status after completing

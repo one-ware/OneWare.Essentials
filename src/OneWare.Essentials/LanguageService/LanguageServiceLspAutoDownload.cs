@@ -23,16 +23,18 @@ public abstract class LanguageServiceLspAutoDownload : LanguageServiceLsp
         executablePath.Subscribe(x =>
         {
             ExecutablePath = x;
+            if(File.Exists(ExecutablePath))
+            {
+                _ = ActivateAsync();
+            }
         });
     }
     
     public override async Task ActivateAsync()
     {
-        if (_packageService.GetPackageModel(_package) is {Status: PackageStatus.Available or PackageStatus.UpdateAvailable or PackageStatus.Installing})
+        if (!File.Exists(ExecutablePath) && _enableAutoDownload)
         {
-            if (!_enableAutoDownload) return;
-            if(!await _packageService.InstallAsync(_package)) return;
-            await Task.Delay(100);
+            await _packageService.InstallAsync(_package);
         }
         await base.ActivateAsync();
     }
