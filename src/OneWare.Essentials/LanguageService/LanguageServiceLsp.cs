@@ -127,7 +127,7 @@ namespace OneWare.Essentials.LanguageService
                 {
                     Client.SendExit();
 
-                    await Task.Delay(100);
+                    await Task.Delay(200);
                     Client = null;
                     IsLanguageServiceReady = false;
                 }

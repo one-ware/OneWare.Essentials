@@ -44,6 +44,7 @@ public abstract class LanguageServiceBase : ILanguageService
     public virtual async Task RestartAsync()
     {
         await DeactivateAsync();
+        await Task.Delay(100);
         await ActivateAsync();
     }
 
