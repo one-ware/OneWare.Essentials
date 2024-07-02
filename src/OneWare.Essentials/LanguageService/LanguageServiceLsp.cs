@@ -496,6 +496,29 @@ namespace OneWare.Essentials.LanguageService
             return null;
         }
         
+        public override async Task<InlayHintContainer?> RequestInlayHintsAsync(string fullPath, Range range)
+        {
+            if (Client?.ServerSettings.Capabilities.InlayHintProvider == null) return null;
+            try
+            {
+                var inlayHintContainer = await Client.RequestInlayHints(new InlayHintParams
+                {
+                    TextDocument = new TextDocumentIdentifier
+                    {
+                        Uri = fullPath
+                    },
+                    Range = range
+                });
+                return inlayHintContainer;
+            }
+            catch (Exception e)
+            {
+                ContainerLocator.Container.Resolve<ILogger>()?.Error(e.Message, e);
+            }
+
+            return null;
+        }
+        
         public override async Task<CompletionList?> RequestCompletionAsync(string fullPath, Position pos, CompletionTriggerKind triggerKind, string? triggerChar)
         {
             var cts = new CancellationTokenSource();

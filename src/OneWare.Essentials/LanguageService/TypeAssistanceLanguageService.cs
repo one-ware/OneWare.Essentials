@@ -24,6 +24,7 @@ using OneWare.Essentials.ViewModels;
 using Prism.Ioc;
 using CompletionList = OmniSharp.Extensions.LanguageServer.Protocol.Models.CompletionList;
 using IFile = OneWare.Essentials.Models.IFile;
+using InlayHint = OneWare.Essentials.EditorExtensions.InlayHint;
 using Location = OmniSharp.Extensions.LanguageServer.Protocol.Models.Location;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -108,6 +109,7 @@ namespace OneWare.Essentials.LanguageService
                 
                 //Execute slower actions after the caret was not changed for 100ms
                 _ = GetDocumentHighlightAsync();
+                _ = UpdateInlayHintsAsync();
             }
 
             if (_lastCompletionItemChangedTime > _lastCompletionItemResolveTime &&
@@ -144,6 +146,7 @@ namespace OneWare.Essentials.LanguageService
             Service.DidOpenTextDocument(CurrentFile.FullPath, Editor.CurrentDocument.Text);
 
             _ = UpdateSemanticTokensAsync();
+            _ = UpdateInlayHintsAsync();
         }
 
         protected override void OnAssistanceDeactivated()
@@ -152,6 +155,7 @@ namespace OneWare.Essentials.LanguageService
             base.OnAssistanceDeactivated();
             Editor.Editor.ModificationService.ClearModification("caretHighlight");
             Editor.Editor.ModificationService.ClearModification("semanticTokens");
+            Editor.Editor.InlayHintRenderer.ClearInlineHints();
         }
 
         protected virtual void DocumentChanged(object? sender, DocumentChangeEventArgs e)
@@ -586,41 +590,24 @@ namespace OneWare.Essentials.LanguageService
             {
                 Editor.Editor.ModificationService.ClearModification("semanticTokens");
             }
+        }
+        
+        protected virtual async Task UpdateInlayHintsAsync()
+        {
+            var inlayHintContainer = await Service.RequestInlayHintsAsync(CurrentFile.FullPath, new Range(0,0, CodeBox.Document.LineCount, 0));
 
-            // LastDocumentSymbols = await Service.RequestSymbolsAsync(CurrentFile.FullPath);
-            //
-            // var languageManager = ContainerLocator.Container.Resolve<ILanguageManager>();
-            //
-            // if (LastDocumentSymbols is not null)
-            // {
-            //     var segments = LastDocumentSymbols
-            //         .Where(x => x.IsDocumentSymbolInformation && x.SymbolInformation != null)
-            //         .Select(x =>
-            //         {
-            //             if (x.IsDocumentSymbol && x.DocumentSymbol != null)
-            //             {
-            //                 if (!languageManager.CurrentEditorThemeColors.TryGetValue(x.DocumentSymbol.Kind,
-            //                         out var brush)) return null;
-            //                 return x.DocumentSymbol.Range.GenerateTextModification(Editor.CurrentDocument, brush);
-            //             }
-            //             if (x.IsDocumentSymbolInformation && x.SymbolInformation != null)
-            //             {
-            //                 if (!languageManager.CurrentEditorThemeColors.TryGetValue(x.SymbolInformation.Kind, out var brush)) return null;
-            //                 if (!x.SymbolInformation.Location.Uri.GetFileSystemPath().EqualPaths(CurrentFile.FullPath)) return null;
-            //                 return x.SymbolInformation.Location.Range.GenerateTextModification(Editor.CurrentDocument, brush);
-            //             }
-            //             return null;
-            //         })
-            //         .Where(x => x is not null)
-            //         .Cast<TextModificationSegment>()
-            //         .ToArray();
-            //     
-            //     Editor.Editor.ModificationService.SetModification("symbols", segments);
-            // }
-            // else
-            // {
-            //     Editor.Editor.ModificationService.ClearModification("symbols");
-            // }
+            if (inlayHintContainer is not null)
+            {
+                Editor.Editor.InlayHintRenderer.SetInlineHints(inlayHintContainer.Select(x => new InlayHint()
+                {
+                    Location = new TextLocation(x.Position.Line + 1, x.Position.Character + 1),
+                    Text = x.Label.ToString()
+                }));
+            }
+            else
+            {
+                Editor.Editor.InlayHintRenderer.ClearInlineHints();
+            }
         }
 
         protected virtual async Task ShowSignatureHelpAsync(SignatureHelpTriggerKind triggerKind, string? triggerChar,

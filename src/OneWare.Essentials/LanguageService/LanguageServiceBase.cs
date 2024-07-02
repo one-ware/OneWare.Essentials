@@ -162,6 +162,11 @@ public abstract class LanguageServiceBase : ILanguageService
         return Task.FromResult<IEnumerable<SemanticToken>?>(null);
     }
 
+    public virtual Task<InlayHintContainer?> RequestInlayHintsAsync(string fullPath, Range range)
+    {
+        return Task.FromResult<InlayHintContainer?>(null);
+    }
+
     public virtual Task<TextEditContainer?> RequestFormattingAsync(string fullPath)
     {
         return Task.FromResult<TextEditContainer?>(null);

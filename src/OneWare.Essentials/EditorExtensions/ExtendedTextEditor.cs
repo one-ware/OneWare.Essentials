@@ -22,8 +22,10 @@ public class ExtendedTextEditor : TextEditor
     public TextMarkerService MarkerService { get; }
     
     public TextModificationService ModificationService { get; }
-    private ElementGenerator ElementGenerator { get; }
+   // private ElementGenerator ElementGenerator { get; }
     public FoldingManager? FoldingManager { get; private set; }
+    
+    public InlayHintRenderer InlayHintRenderer { get; }
     
     public ExtendedTextEditor()
     {
@@ -42,13 +44,14 @@ public class ExtendedTextEditor : TextEditor
         TextArea.TextView.LinkTextUnderline = true;
         TextArea.RightClickMovesCaret = true;
 
-        ElementGenerator = new ElementGenerator();
         BracketRenderer = new BracketHighlightRenderer(TextArea.TextView);
         LineRenderer = new LineHighlightRenderer(this);
+        //ElementGenerator = new ElementGenerator();
         //MergeService = new MergeService(this, ElementGenerator);
         WordRenderer = new WordHighlightRenderer(TextArea.TextView);
         MarkerService = new TextMarkerService(Document);
         ModificationService = new TextModificationService(TextArea.TextView);
+        InlayHintRenderer = new InlayHintRenderer(this);
         
         TextArea.TextView.BackgroundRenderers.Add(BracketRenderer);
         TextArea.TextView.BackgroundRenderers.Add(LineRenderer);
@@ -57,7 +60,8 @@ public class ExtendedTextEditor : TextEditor
         TextArea.TextView.BackgroundRenderers.Add(MarkerService);
 
         TextArea.TextView.LineTransformers.Add(ModificationService);
-        TextArea.TextView.ElementGenerators.Add(ElementGenerator);
+        //TextArea.TextView.ElementGenerators.Add(ElementGenerator);
+        TextArea.TextView.ElementGenerators.Add(InlayHintRenderer);
     }
 
     protected override void OnDocumentChanged(DocumentChangedEventArgs e)

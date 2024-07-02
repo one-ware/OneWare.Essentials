@@ -56,6 +56,7 @@ public interface ILanguageService
     public Task<SymbolInformationOrDocumentSymbolContainer?> RequestSymbolsAsync(string fullPath);
     public Task<Container<ColorInformation>?> RequestDocumentColorAsync(string fullPath);
     public Task<IEnumerable<SemanticToken>?> RequestSemanticTokensFullAsync(string fullPath);
+    public Task<InlayHintContainer?> RequestInlayHintsAsync(string fullPath, Range range);
     public Task<TextEditContainer?> RequestFormattingAsync(string fullPath);
     public Task<TextEditContainer?> RequestRangeFormattingAsync(string fullPath, Range range);
     public Task ExecuteCommandAsync(Command cmd);
