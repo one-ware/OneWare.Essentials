@@ -11,7 +11,9 @@ public class TextModificationSegment : TextSegment
         EndOffset = endOffset;
     }
 
-    public IBrush? Brush { get; set; }
-        
+    public IBrush? Foreground { get; set; }
+    
+    public IBrush? Background { get; set; }
+
     public TextDecorationCollection? Decorations { get; set; }
 }

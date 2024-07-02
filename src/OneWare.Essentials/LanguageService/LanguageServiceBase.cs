@@ -1,5 +1,6 @@
 ﻿using Avalonia.Threading;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OneWare.Essentials.EditorExtensions;
 using OneWare.Essentials.Enums;
 using OneWare.Essentials.Extensions;
 using OneWare.Essentials.Models;
@@ -154,6 +155,11 @@ public abstract class LanguageServiceBase : ILanguageService
     public virtual Task<Container<ColorInformation>?> RequestDocumentColorAsync(string fullPath)
     {
         return Task.FromResult<Container<ColorInformation>?>(null);
+    }
+
+    public virtual Task<IEnumerable<SemanticToken>?> RequestSemanticTokensFullAsync(string fullPath)     
+    {
+        return Task.FromResult<IEnumerable<SemanticToken>?>(null);
     }
 
     public virtual Task<TextEditContainer?> RequestFormattingAsync(string fullPath)

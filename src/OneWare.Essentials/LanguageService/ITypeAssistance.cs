@@ -22,6 +22,7 @@ namespace OneWare.Essentials.LanguageService
         void Format();
         void TextEntering(TextInputEventArgs e);
         void TextEntered(TextInputEventArgs e);
+        void CaretPositionChanged(int offset);
         Task<List<MenuItemViewModel>?> GetQuickMenuAsync(int offset);
         Task<string?> GetHoverInfoAsync(int offset);
         Task<Action?> GetActionOnControlWordAsync(int offset);

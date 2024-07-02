@@ -14,6 +14,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Window;
 using OmniSharp.Extensions.LanguageServer.Protocol.Workspace;
+using OneWare.Essentials.EditorExtensions;
 using OneWare.Essentials.Helpers;
 using OneWare.Essentials.Models;
 using OneWare.Essentials.Services;
@@ -187,6 +188,20 @@ namespace OneWare.Essentials.LanguageService
                     {
                         LinkSupport = false
                     });
+                    // options.WithCapability(new SemanticTokensCapability()
+                    // {
+                    //     OverlappingTokenSupport = false,
+                    //     ServerCancelSupport = true,
+                    //     Requests = new SemanticTokensCapabilityRequests()
+                    //     {
+                    //         Range = new Supports<SemanticTokensCapabilityRequestRange?>(false),
+                    //         Full = new Supports<SemanticTokensCapabilityRequestFull?>(true)
+                    //     },
+                    //     TokenTypes = new Container<SemanticTokenType>(SemanticTokenType.Type, SemanticTokenType.Function, SemanticTokenType.Variable, SemanticTokenType.Class, SemanticTokenType.Keyword),
+                    //     Formats = new Container<SemanticTokenFormat>(SemanticTokenFormat.Relative),
+                    //     AugmentsSyntaxTokens = true,
+                    //     MultilineTokenSupport = true
+                    // });
                     // options.WithCapability(new DidChangeWatchedFilesCapability()
                     // {
                     //     
@@ -456,6 +471,32 @@ namespace OneWare.Essentials.LanguageService
             return Client.ExecuteCommand(cmd);
         }
 
+        public override async Task<IEnumerable<SemanticToken>?> RequestSemanticTokensFullAsync(string fullPath)
+        {
+            if (Client?.ServerSettings.Capabilities.SemanticTokensProvider == null) return null;
+            try
+            {
+                var semanticTokens = await Client.RequestSemanticTokensFull(new SemanticTokensParams()
+                {
+                    TextDocument = new TextDocumentIdentifier
+                    {
+                        Uri = fullPath
+                    },
+                });
+                if (semanticTokens == null) return null;
+
+                var legend = Client.ServerSettings.Capabilities.SemanticTokensProvider.Legend;
+                var parsedTokens = SemanticTokenHelper.ParseSemanticTokens(semanticTokens.Data, legend);
+                return parsedTokens;
+            }
+            catch (Exception e)
+            {
+                ContainerLocator.Container.Resolve<ILogger>()?.Error(e.Message, e);
+            }
+
+            return null;
+        }
+        
         public override async Task<CompletionList?> RequestCompletionAsync(string fullPath, Position pos, CompletionTriggerKind triggerKind, string? triggerChar)
         {
             var cts = new CancellationTokenSource();

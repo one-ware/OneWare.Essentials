@@ -1,5 +1,4 @@
-﻿using Avalonia.Media;
-using AvaloniaEdit.Document;
+﻿using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 
 namespace OneWare.Essentials.EditorExtensions;
@@ -70,16 +69,16 @@ public class TextModificationService : DocumentColorizingTransformer
                 foreach (var overlap in overlaps)
                 {
                     if (overlap.EndOffset > line.EndOffset) overlap.EndOffset = line.EndOffset;
-                    ChangeLinePart(overlap.StartOffset, overlap.EndOffset, (x) => ApplyChanges(x, overlap.Brush, overlap.Decorations));
+                    ChangeLinePart(overlap.StartOffset, overlap.EndOffset, (x) => ApplyChanges(x, overlap));
                 }
             }
         }
     }
 
-    private void ApplyChanges(VisualLineElement element, IBrush? color, TextDecorationCollection? decorations)
+    private void ApplyChanges(VisualLineElement element, TextModificationSegment segment)
     {
-        // This is where you do anything with the line
-        if (color != null) element.TextRunProperties.SetForegroundBrush(color);
-        if (decorations != null) element.TextRunProperties.SetTextDecorations(decorations);
+        if (segment.Foreground != null) element.TextRunProperties.SetForegroundBrush(segment.Foreground);
+        if (segment.Background != null) element.TextRunProperties.SetBackgroundBrush(segment.Background);
+        if (segment.Decorations != null) element.TextRunProperties.SetTextDecorations(segment.Decorations);
     }
 }

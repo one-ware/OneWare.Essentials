@@ -1,4 +1,5 @@
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OneWare.Essentials.EditorExtensions;
 using OneWare.Essentials.ViewModels;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -54,6 +55,7 @@ public interface ILanguageService
     public Task<IEnumerable<LocationOrLocationLink>?> RequestDeclarationAsync(string fullPath, Position pos);
     public Task<SymbolInformationOrDocumentSymbolContainer?> RequestSymbolsAsync(string fullPath);
     public Task<Container<ColorInformation>?> RequestDocumentColorAsync(string fullPath);
+    public Task<IEnumerable<SemanticToken>?> RequestSemanticTokensFullAsync(string fullPath);
     public Task<TextEditContainer?> RequestFormattingAsync(string fullPath);
     public Task<TextEditContainer?> RequestRangeFormattingAsync(string fullPath, Range range);
     public Task ExecuteCommandAsync(Command cmd);

@@ -6,13 +6,13 @@ namespace OneWare.Essentials.EditorExtensions
 {
     public class WordHighlightRenderer : IBackgroundRenderer
     {
-        public const string BracketHighlight = "Bracket highlight";
-
         public static readonly Color DefaultBackground = Color.FromArgb(20, 0, 200, 255);
         public static readonly Color DefaultBorder = Color.FromArgb(150, 0, 200, 255);
+        
         private readonly TextView _textView;
         private Brush? _backgroundBrush;
         private Pen? _borderPen;
+        
         public WordSearchResult? Result { get; set; }
 
         public WordHighlightRenderer(TextView textView)

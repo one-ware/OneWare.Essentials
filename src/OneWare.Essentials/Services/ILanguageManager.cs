@@ -1,15 +1,18 @@
 using System.ComponentModel;
+using Avalonia.Media;
 using OneWare.Essentials.LanguageService;
 using OneWare.Essentials.Models;
 using OneWare.Essentials.ViewModels;
 using TextMateSharp.Registry;
 using TextMateSharp.Themes;
+using IFile = OneWare.Essentials.Models.IFile;
 
 namespace OneWare.Essentials.Services;
 
 public interface ILanguageManager : INotifyPropertyChanged
 {
     public IRawTheme CurrentEditorTheme { get; }
+    public Dictionary<string, IBrush> CurrentEditorThemeColors { get; }
     public IRegistryOptions RegistryOptions { get; }
     public event EventHandler<string>? LanguageSupportAdded;
     public void RegisterTextMateLanguage(string id, string grammarPath, params string[] extensions);

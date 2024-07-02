@@ -40,15 +40,17 @@ namespace OneWare.Essentials.LanguageService
         private TimeSpan _lastCompletionItemResolveTime = DateTime.Now.TimeOfDay;
 
         private TimeSpan _lastEditTime = DateTime.Now.TimeOfDay;
-        private TimeSpan _lastRefreshTime = DateTime.Now.TimeOfDay;
-        
+        private TimeSpan _lastCaretChangeTime = DateTime.Now.TimeOfDay;
+        private TimeSpan _lastDocumentChangedRefreshTime = DateTime.Now.TimeOfDay;
+        private TimeSpan _lastCaretChangedRefreshTime = DateTime.Now.TimeOfDay;
+
         private static ISettingsService SettingsService => ContainerLocator.Container.Resolve<ISettingsService>();
-        
-        private readonly TimeSpan _timerTimeSpan = TimeSpan.FromMilliseconds(200);
-        protected virtual TimeSpan RefreshTime => TimeSpan.FromMilliseconds(500);
-        
+
+        private readonly TimeSpan _timerTimeSpan = TimeSpan.FromMilliseconds(100);
+        protected virtual TimeSpan DocumentChangedRefreshTime => TimeSpan.FromMilliseconds(500);
+        protected virtual TimeSpan CaretChangedRefreshTime => TimeSpan.FromMilliseconds(100);
+
         protected ILanguageService Service { get; }
-        protected SymbolInformationOrDocumentSymbolContainer? LastDocumentSymbols { get; private set; }
 
         protected TypeAssistanceLanguageService(IEditor evm, ILanguageService langService) : base(evm)
         {
@@ -70,9 +72,8 @@ namespace OneWare.Essentials.LanguageService
             CodeBox.Document.Changed += DocumentChanged;
             Editor.FileSaved -= FileSaved;
             Editor.FileSaved += FileSaved;
-
         }
-        
+
         public override void Attach()
         {
             _dispatcherTimer?.Stop();
@@ -93,16 +94,28 @@ namespace OneWare.Essentials.LanguageService
 
         protected virtual void Timer_Tick(object? sender, EventArgs e)
         {
-            if (_lastEditTime > _lastRefreshTime && _lastEditTime <= DateTime.Now.TimeOfDay - RefreshTime)
+            if (_lastEditTime > _lastDocumentChangedRefreshTime && _lastEditTime <= DateTime.Now.TimeOfDay - DocumentChangedRefreshTime)
             {
-                _lastRefreshTime = DateTime.Now.TimeOfDay;
+                _lastDocumentChangedRefreshTime = DateTime.Now.TimeOfDay;
+                
+                //Execute slower actions after no edit was done for 500ms
                 CodeUpdated();
+            }
+            
+            if (_lastCaretChangeTime > _lastCaretChangedRefreshTime && _lastCaretChangeTime <= DateTime.Now.TimeOfDay - CaretChangedRefreshTime)
+            {
+                _lastCaretChangedRefreshTime = DateTime.Now.TimeOfDay;
+                
+                //Execute slower actions after the caret was not changed for 100ms
+                _ = GetDocumentHighlightAsync();
             }
 
             if (_lastCompletionItemChangedTime > _lastCompletionItemResolveTime &&
-                _lastCompletionItemChangedTime <= DateTime.Now.TimeOfDay - RefreshTime)
+                _lastCompletionItemChangedTime <= DateTime.Now.TimeOfDay - CaretChangedRefreshTime)
             {
                 _lastCompletionItemResolveTime = DateTime.Now.TimeOfDay;
+                
+                //Execute slower actions after the caret was not changed for 100ms
                 _ = ResolveCompletionAsync();
             }
         }
@@ -110,7 +123,7 @@ namespace OneWare.Essentials.LanguageService
         protected virtual void CodeUpdated()
         {
             Service.RefreshTextDocument(CurrentFile.FullPath, CodeBox.Text);
-            _ = UpdateSymbolsAsync();
+            _ = UpdateSemanticTokensAsync();
         }
 
         private void Server_Activated(object? sender, EventArgs e)
@@ -122,7 +135,7 @@ namespace OneWare.Essentials.LanguageService
         {
             OnAssistanceDeactivated();
         }
-        
+
         protected override void OnAssistanceActivated()
         {
             if (!IsOpen) return;
@@ -130,19 +143,21 @@ namespace OneWare.Essentials.LanguageService
             base.OnAssistanceActivated();
             Service.DidOpenTextDocument(CurrentFile.FullPath, Editor.CurrentDocument.Text);
 
-            _ = UpdateSymbolsAsync();
+            _ = UpdateSemanticTokensAsync();
         }
 
         protected override void OnAssistanceDeactivated()
         {
             if (!IsOpen) return;
             base.OnAssistanceDeactivated();
+            Editor.Editor.ModificationService.ClearModification("caretHighlight");
+            Editor.Editor.ModificationService.ClearModification("semanticTokens");
         }
 
         protected virtual void DocumentChanged(object? sender, DocumentChangeEventArgs e)
         {
             if (!IsOpen || !Service.IsLanguageServiceReady) return;
-            
+
             var c = ConvertChanges(e);
             var changes = new Container<TextDocumentContentChangeEvent>(c);
             Service.RefreshTextDocument(CurrentFile.FullPath, changes);
@@ -152,7 +167,8 @@ namespace OneWare.Essentials.LanguageService
 
         private void FileSaved(object? sender, EventArgs e)
         {
-            if (Service.IsLanguageServiceReady) Service.DidSaveTextDocument(CurrentFile.FullPath, Editor.CurrentDocument.Text);
+            if (Service.IsLanguageServiceReady)
+                Service.DidSaveTextDocument(CurrentFile.FullPath, Editor.CurrentDocument.Text);
         }
 
         public override void Close()
@@ -178,15 +194,16 @@ namespace OneWare.Essentials.LanguageService
 
             var pos = CodeBox.Document.GetLocation(offset);
 
-            var error = ContainerLocator.Container.Resolve<IErrorService>().GetErrorsForFile(CurrentFile).OrderBy(x => x.Type)
-                .FirstOrDefault(error => pos.Line >= error.StartLine 
-                                         && pos.Line <= error.EndLine 
+            var error = ContainerLocator.Container.Resolve<IErrorService>().GetErrorsForFile(CurrentFile)
+                .OrderBy(x => x.Type)
+                .FirstOrDefault(error => pos.Line >= error.StartLine
+                                         && pos.Line <= error.EndLine
                                          && pos.Column >= error.StartColumn
                                          && pos.Column <= error.EndColumn);
             var info = "";
-            
-            if(error != null) info += error.Description + "\n";
-            
+
+            if (error != null) info += error.Description + "\n";
+
             var hover = await Service.RequestHoverAsync(CurrentFile.FullPath,
                 new Position(pos.Line - 1, pos.Column - 1));
             if (hover != null)
@@ -205,7 +222,7 @@ namespace OneWare.Essentials.LanguageService
             if (!Service.IsLanguageServiceReady || offset > CodeBox.Document.TextLength) return menuItems;
             var location = CodeBox.Document.GetLocation(offset);
             var pos = CodeBox.Document.GetPositionFromOffset(offset);
-            
+
             //Quick Fixes
             var error = GetErrorAtLocation(location);
             if (error != null && error.Diagnostic != null)
@@ -224,18 +241,20 @@ namespace OneWare.Essentials.LanguageService
                     {
                         if (ca.IsCodeAction && ca.CodeAction != null)
                         {
-                            if(ca.CodeAction.Command != null) quickfixes.Add(new MenuItemViewModel(ca.CodeAction.Title)
-                            {
-                                Header = ca.CodeAction.Title,
-                                Command = new RelayCommand<Command>(ExecuteCommand),
-                                CommandParameter = ca.CodeAction.Command
-                            });
-                            else if(ca.CodeAction.Edit != null) quickfixes.Add(new MenuItemViewModel(ca.CodeAction.Title)
-                            {
-                                Header = ca.CodeAction.Title,
-                                Command = new AsyncRelayCommand<WorkspaceEdit>(Service.ApplyWorkspaceEditAsync),
-                                CommandParameter = ca.CodeAction.Edit
-                            });
+                            if (ca.CodeAction.Command != null)
+                                quickfixes.Add(new MenuItemViewModel(ca.CodeAction.Title)
+                                {
+                                    Header = ca.CodeAction.Title,
+                                    Command = new RelayCommand<Command>(ExecuteCommand),
+                                    CommandParameter = ca.CodeAction.Command
+                                });
+                            else if (ca.CodeAction.Edit != null)
+                                quickfixes.Add(new MenuItemViewModel(ca.CodeAction.Title)
+                                {
+                                    Header = ca.CodeAction.Title,
+                                    Command = new AsyncRelayCommand<WorkspaceEdit>(Service.ApplyWorkspaceEditAsync),
+                                    CommandParameter = ca.CodeAction.Edit
+                                });
                         }
                     }
 
@@ -256,7 +275,7 @@ namespace OneWare.Essentials.LanguageService
                     Header = "Rename...",
                     Command = new AsyncRelayCommand<RangeOrPlaceholderRange>(StartRenameSymbolAsync),
                     CommandParameter = prepareRefactor,
-                    IconObservable = Application.Current?.GetResourceObservable("VsImageLib.Rename16X") 
+                    IconObservable = Application.Current?.GetResourceObservable("VsImageLib.Rename16X")
                 });
 
             var definition = await Service.RequestDefinitionAsync(CurrentFile.FullPath,
@@ -337,7 +356,7 @@ namespace OneWare.Essentials.LanguageService
         protected async Task StartRenameSymbolAsync(RangeOrPlaceholderRange? range)
         {
             if (range == null) return;
-            
+
             if (range.IsRange && range.Range != null)
             {
                 await Task.Delay(10);
@@ -366,7 +385,8 @@ namespace OneWare.Essentials.LanguageService
         {
             if (Regex.IsMatch(newName, @"\W"))
             {
-                ContainerLocator.Container.Resolve<ILogger>()?.Error($"Can't rename symbol to {newName}! Only letters, numbers and underscore allowed!");
+                ContainerLocator.Container.Resolve<ILogger>()
+                    ?.Error($"Can't rename symbol to {newName}! Only letters, numbers and underscore allowed!");
                 return;
             }
 
@@ -382,7 +402,7 @@ namespace OneWare.Essentials.LanguageService
                 ContainerLocator.Container.Resolve<ILogger>()?.Error("Placeholder Range renaming not supported yet!");
             }
         }
-        
+
         public override async Task<Action?> GetActionOnControlWordAsync(int offset)
         {
             if (!Service.IsLanguageServiceReady || offset > CodeBox.Document.TextLength) return null;
@@ -403,11 +423,11 @@ namespace OneWare.Essentials.LanguageService
         protected virtual async Task GoToLocationAsync(Location? location)
         {
             if (location == null) return;
-            
+
             var path = Path.GetFullPath(location.Uri.GetFileSystemPath());
             var file = ContainerLocator.Container.Resolve<IProjectExplorerService>().SearchFullPath(path) as IFile;
             file ??= ContainerLocator.Container.Resolve<IProjectExplorerService>().GetTemporaryFile(path);
-            
+
             var dockable = await ContainerLocator.Container.Resolve<IDockService>().OpenFileAsync(file);
             if (dockable is IEditor evm)
             {
@@ -426,7 +446,8 @@ namespace OneWare.Essentials.LanguageService
         {
             try
             {
-                if (SettingsService.GetSettingValue<bool>("TypeAssistance_EnableAutoFormatting")) TextEnteredAutoFormat(args);
+                if (SettingsService.GetSettingValue<bool>("TypeAssistance_EnableAutoFormatting"))
+                    TextEnteredAutoFormat(args);
 
                 if (!Service.IsLanguageServiceReady || args.Text == null) return;
 
@@ -436,28 +457,29 @@ namespace OneWare.Essentials.LanguageService
                     var beforeTriggerChar = CodeBox.CaretOffset > 1 ? CodeBox.Text[CodeBox.CaretOffset - 2] : ' ';
 
                     var signatureHelpTrigger = Service.GetSignatureHelpTriggerChars();
-                    
+
                     if (signatureHelpTrigger.Contains(triggerChar)) //Function Parameter / Overload insight
                     {
                         Completion?.Close();
-                        await ShowSignatureHelpAsync(SignatureHelpTriggerKind.TriggerCharacter, triggerChar, false, null);
+                        await ShowSignatureHelpAsync(SignatureHelpTriggerKind.TriggerCharacter, triggerChar, false,
+                            null);
                     }
 
                     var completionTriggerChars = Service.GetCompletionTriggerChars();
                     if (completionTriggerChars.Contains(triggerChar))
                     {
                         _completionBusy = true;
-                        await ShowCompletionAsync(CompletionTriggerKind.TriggerCharacter, triggerChar); 
+                        await ShowCompletionAsync(CompletionTriggerKind.TriggerCharacter, triggerChar);
                     }
                     else if (CharBeforeNormalCompletion(beforeTriggerChar) && triggerChar.All(char.IsLetter))
                     {
                         _completionBusy = true;
                         await ShowCompletionAsync(CompletionTriggerKind.Invoked, triggerChar);
                     }
-                
+
                     _completionBusy = false;
                 }
-                
+
                 await base.TextEnteredAsync(args);
             }
             catch (Exception e)
@@ -476,7 +498,7 @@ namespace OneWare.Essentials.LanguageService
                 var minIndex = CodeBox.Document.GetLineByOffset(startIndex).Offset;
                 var maxIndex = CodeBox.Document.GetLineByOffset(endIndex).EndOffset;
                 var newLine = TextUtilities.GetNewLineFromDocument(CodeBox.Document, CodeBox.TextArea.Caret.Line);
-                
+
                 if (endIndex >= CodeBox.Text.Length) return;
                 while (startIndex > minIndex && CodeBox.Text[endIndex] != '\n' && CodeBox.Text[startIndex] != '{' &&
                        CodeBox.Text[startIndex] != '(') startIndex--;
@@ -495,7 +517,8 @@ namespace OneWare.Essentials.LanguageService
                         caretLine++;
                     }
 
-                    replaceString = replaceString.Insert(1 + newLine.Length, $" {newLine} "); // <-- empty char for indentation
+                    replaceString =
+                        replaceString.Insert(1 + newLine.Length, $" {newLine} "); // <-- empty char for indentation
 
                     CodeBox.Document.BeginUpdate();
                     CodeBox.Document.Replace(startIndex, endIndex - startIndex + 1, replaceString);
@@ -507,18 +530,92 @@ namespace OneWare.Essentials.LanguageService
             }
         }
 
-        protected virtual async Task UpdateSymbolsAsync()
+        public override void CaretPositionChanged(int offset)
         {
-            LastDocumentSymbols = await Service.RequestSymbolsAsync(CurrentFile.FullPath);
-            
+            base.CaretPositionChanged(offset);
+
+            _lastCaretChangeTime = DateTime.Now.TimeOfDay;
+        }
+
+        private async Task GetDocumentHighlightAsync()
+        {
+            var result = await Service.RequestDocumentHighlightAsync(CurrentFile.FullPath,
+                new Position(CodeBox.TextArea.Caret.Line - 1, CodeBox.TextArea.Caret.Column - 1));
+
+            if (result is not null)
+            {
+                var segments = result.Select(x =>
+                        x.Range.GenerateTextModification(Editor.CurrentDocument, null,
+                            SolidColorBrush.Parse("#3300c8ff")))
+                    .ToArray();
+                Editor.Editor.ModificationService.SetModification("caretHighlight", segments);
+            }
+            else
+            {
+                Editor.Editor.ModificationService.ClearModification("caretHighlight");
+            }
+        }
+
+        protected virtual async Task UpdateSemanticTokensAsync()
+        {
+            var tokens = await Service.RequestSemanticTokensFullAsync(CurrentFile.FullPath);
+
+            var languageManager = ContainerLocator.Container.Resolve<ILanguageManager>();
+
+            if (tokens != null)
+            {
+                var segments = tokens.Select(x =>
+                    {
+                        var offset =
+                            Editor.CurrentDocument.GetOffsetFromPosition(new Position(x.Line, x.StartCharacter)) - 1;
+
+                        if (!languageManager.CurrentEditorThemeColors.TryGetValue(x.TokenType.ToString(), out var b))
+                            return null;
+
+                        return new TextModificationSegment(offset, offset + x.Length)
+                        {
+                            Foreground = b
+                        };
+                    }).Where(x => x is not null)
+                    .Cast<TextModificationSegment>()
+                    .ToArray();
+
+                Editor.Editor.ModificationService.SetModification("semanticTokens", segments);
+            }
+            else
+            {
+                Editor.Editor.ModificationService.ClearModification("semanticTokens");
+            }
+
+            // LastDocumentSymbols = await Service.RequestSymbolsAsync(CurrentFile.FullPath);
+            //
+            // var languageManager = ContainerLocator.Container.Resolve<ILanguageManager>();
+            //
             // if (LastDocumentSymbols is not null)
             // {
             //     var segments = LastDocumentSymbols
             //         .Where(x => x.IsDocumentSymbolInformation && x.SymbolInformation != null)
-            //         .Select(x => x.SymbolInformation!.Location.Range.GenerateTextModification(Editor.CurrentDocument, Brushes.Chocolate))
+            //         .Select(x =>
+            //         {
+            //             if (x.IsDocumentSymbol && x.DocumentSymbol != null)
+            //             {
+            //                 if (!languageManager.CurrentEditorThemeColors.TryGetValue(x.DocumentSymbol.Kind,
+            //                         out var brush)) return null;
+            //                 return x.DocumentSymbol.Range.GenerateTextModification(Editor.CurrentDocument, brush);
+            //             }
+            //             if (x.IsDocumentSymbolInformation && x.SymbolInformation != null)
+            //             {
+            //                 if (!languageManager.CurrentEditorThemeColors.TryGetValue(x.SymbolInformation.Kind, out var brush)) return null;
+            //                 if (!x.SymbolInformation.Location.Uri.GetFileSystemPath().EqualPaths(CurrentFile.FullPath)) return null;
+            //                 return x.SymbolInformation.Location.Range.GenerateTextModification(Editor.CurrentDocument, brush);
+            //             }
+            //             return null;
+            //         })
+            //         .Where(x => x is not null)
+            //         .Cast<TextModificationSegment>()
             //         .ToArray();
             //     
-            //     Editor.Editor.ModificationService.SetModification("symbol", segments);
+            //     Editor.Editor.ModificationService.SetModification("symbols", segments);
             // }
             // else
             // {
@@ -526,14 +623,16 @@ namespace OneWare.Essentials.LanguageService
             // }
         }
 
-        protected virtual async Task ShowSignatureHelpAsync(SignatureHelpTriggerKind triggerKind, string? triggerChar, bool retrigger, SignatureHelp? activeSignatureHelp)
+        protected virtual async Task ShowSignatureHelpAsync(SignatureHelpTriggerKind triggerKind, string? triggerChar,
+            bool retrigger, SignatureHelp? activeSignatureHelp)
         {
             var signatureHelp = await Service.RequestSignatureHelpAsync(CurrentFile.FullPath,
-                new Position(CodeBox.TextArea.Caret.Line - 1, CodeBox.TextArea.Caret.Column - 1), triggerKind, triggerChar, retrigger, activeSignatureHelp);
+                new Position(CodeBox.TextArea.Caret.Line - 1, CodeBox.TextArea.Caret.Column - 1), triggerKind,
+                triggerChar, retrigger, activeSignatureHelp);
             if (signatureHelp != null && IsOpen)
             {
                 var overloadProvider = ConvertOverloadProvider(signatureHelp);
-                
+
                 OverloadInsight = new OverloadInsightWindow(CodeBox)
                 {
                     Provider = overloadProvider,
@@ -541,29 +640,30 @@ namespace OneWare.Essentials.LanguageService
                     AdditionalOffset = new Vector(0, -(SettingsService.GetSettingValue<int>("Editor_FontSize") * 1.4))
                 };
 
-                OverloadInsight.SetValue(TextBlock.FontSizeProperty, SettingsService.GetSettingValue<int>("Editor_FontSize"));
+                OverloadInsight.SetValue(TextBlock.FontSizeProperty,
+                    SettingsService.GetSettingValue<int>("Editor_FontSize"));
                 if (overloadProvider.Count > 0) OverloadInsight.Show();
             }
         }
 
         private CompositeDisposable _completionDisposable = new();
-        
+
         protected virtual async Task ShowCompletionAsync(CompletionTriggerKind triggerKind, string? triggerChar)
         {
             //Console.WriteLine($"Completion request kind: {triggerKind} char: {triggerChar}");
             var completionOffset = CodeBox.CaretOffset;
-            
+
             var lspCompletionItems = await Service.RequestCompletionAsync(CurrentFile.FullPath,
                 new Position(CodeBox.TextArea.Caret.Line - 1, CodeBox.TextArea.Caret.Column - 1),
                 triggerKind, triggerKind == CompletionTriggerKind.Invoked ? null : triggerChar);
-            
+
             var customCompletionItems = await GetCustomCompletionItemsAsync();
-            
+
             if ((lspCompletionItems is not null || customCompletionItems.Count > 0) && IsOpen)
             {
                 Completion?.Close();
                 _completionDisposable = new CompositeDisposable();
-                
+
                 Completion = new CompletionWindow(CodeBox)
                 {
                     CloseWhenCaretAtBeginning = false,
@@ -573,7 +673,7 @@ namespace OneWare.Essentials.LanguageService
                     StartOffset = completionOffset,
                     EndOffset = completionOffset
                 };
-                
+
                 Observable.FromEventPattern(Completion, nameof(Completion.Closed)).Take(1).Subscribe(x =>
                 {
                     _completionDisposable.Dispose();
@@ -586,16 +686,18 @@ namespace OneWare.Essentials.LanguageService
                         Completion.Close();
                     }
                 }).DisposeWith(_completionDisposable);
-                
+
                 Completion.CompletionList.CompletionData.AddRange(customCompletionItems);
-                
+
                 if (lspCompletionItems is not null)
                 {
                     if (triggerKind is CompletionTriggerKind.TriggerCharacter && triggerChar != null)
                     {
                         completionOffset++;
                     }
-                    Completion.CompletionList.CompletionData.AddRange(ConvertCompletionData(lspCompletionItems, completionOffset));
+
+                    Completion.CompletionList.CompletionData.AddRange(ConvertCompletionData(lspCompletionItems,
+                        completionOffset));
                 }
 
                 //Calculate CompletionWindow width
@@ -606,7 +708,7 @@ namespace OneWare.Essentials.LanguageService
                 var calculatedWith = length * SettingsService.GetSettingValue<int>("Editor_FontSize") + 50;
 
                 Completion.Width = calculatedWith > 400 ? 500 : calculatedWith;
-                
+
                 if (Completion.CompletionList.CompletionData.Count > 0)
                 {
                     Completion.Show();
@@ -617,7 +719,7 @@ namespace OneWare.Essentials.LanguageService
                 }
             }
         }
-        
+
         public virtual Task<List<CompletionData>> GetCustomCompletionItemsAsync()
         {
             return Task.FromResult(new List<CompletionData>());
@@ -631,21 +733,25 @@ namespace OneWare.Essentials.LanguageService
                 {
                     Header = "Restart Language Server",
                     Command = new RelayCommand(() => _ = Service.RestartAsync()),
-                    IconObservable = Application.Current!.GetResourceObservable("VsImageLib.RefreshGrey16X") 
+                    IconObservable = Application.Current!.GetResourceObservable("VsImageLib.RefreshGrey16X")
                 }
             };
         }
 
         public virtual void ExecuteCommand(Command? cmd)
         {
-            if(cmd == null) return;
+            if (cmd == null) return;
             if (Service.IsLanguageServiceReady && IsOpen) _ = Service.ExecuteCommandAsync(cmd);
         }
 
         public virtual async Task ResolveCompletionAsync()
         {
             //Resolve selected item
-            if (Service.IsLanguageServiceReady && Completion is { IsOpen: true, CompletionList: {SelectedItem: CompletionData{CompletionItemLsp: not null} selectedItem} })
+            if (Service.IsLanguageServiceReady && Completion is
+                {
+                    IsOpen: true,
+                    CompletionList: { SelectedItem: CompletionData { CompletionItemLsp: not null } selectedItem }
+                })
             {
                 var resolvedCi = await Service.ResolveCompletionItemAsync(selectedItem.CompletionItemLsp);
                 if (resolvedCi != null && IsOpen && Completion.IsOpen)
@@ -663,7 +769,8 @@ namespace OneWare.Essentials.LanguageService
 
         protected virtual bool CharBeforeNormalCompletion(char c)
         {
-            return char.IsWhiteSpace(c) || c is ';' or '#' or '(' or ':' or '+' or '-' or '=' or '*' or '/' or '&' or ',';
+            return char.IsWhiteSpace(c) ||
+                   c is ';' or '#' or '(' or ':' or '+' or '-' or '=' or '*' or '/' or '&' or ',';
         }
 
         protected virtual OverloadProvider ConvertOverloadProvider(SignatureHelp signatureHelp)
@@ -681,12 +788,15 @@ namespace OneWare.Essentials.LanguageService
                         m1 += p.Label.Label;
                         if (i < s.Parameters.Count() - 1) m1 += ", ";
                     }
+
                     m1 += p.Label.Label;
                     if (i < s.Parameters.Count() - 1) m1 += ", ";
                 }
+
                 m1 += ")\n```";
                 var m2 = string.Empty;
-                if (s.Documentation != null && s.Documentation.HasMarkupContent) m2 += s.Documentation.MarkupContent?.Value;
+                if (s.Documentation != null && s.Documentation.HasMarkupContent)
+                    m2 += s.Documentation.MarkupContent?.Value;
                 if (s.Documentation != null && s.Documentation.HasString) m2 += s.Documentation.String;
                 overloadOptions.Add((m1, m2.Length > 0 ? m2 : null));
             }
@@ -713,9 +823,13 @@ namespace OneWare.Essentials.LanguageService
             {
                 _ = ShowSignatureHelpAsync(SignatureHelpTriggerKind.Invoked, null, false, null);
             }
-            
-            var description = comp.Documentation != null ? (comp.Documentation.MarkupContent != null ? comp.Documentation.MarkupContent.Value : comp.Documentation.String) : null;
-            
+
+            var description = comp.Documentation != null
+                ? (comp.Documentation.MarkupContent != null
+                    ? comp.Documentation.MarkupContent.Value
+                    : comp.Documentation.String)
+                : null;
+
             return new CompletionData(comp.InsertText ?? comp.FilterText ?? "", comp.Label, description, icon, 0,
                 comp, offset, AfterComplete);
         }
@@ -723,20 +837,22 @@ namespace OneWare.Essentials.LanguageService
         public ErrorListItem? GetErrorAtLocation(TextLocation location)
         {
             foreach (var error in ContainerLocator.Container.Resolve<IErrorService>().GetErrorsForFile(CurrentFile))
-                if (location.Line >= error.StartLine && location.Column >= error.StartColumn && (location.Line < error.EndLine || location.Line == error.EndLine && location.Column <= error.EndColumn))
+                if (location.Line >= error.StartLine && location.Column >= error.StartColumn &&
+                    (location.Line < error.EndLine ||
+                     location.Line == error.EndLine && location.Column <= error.EndColumn))
                     return error;
             return null;
         }
-        
+
         protected IEnumerable<TextDocumentContentChangeEvent> ConvertChanges(DocumentChangeEventArgs e)
         {
             var l = new List<TextDocumentContentChangeEvent>();
             var map = e.OffsetChangeMap;
-            
+
             foreach (var c in map)
             {
                 var location = CodeBox.Document.GetLocation(c.Offset);
-                
+
                 //calculate newlines
                 var newlines = e.RemovedText.Text.Count(x => x == '\n');
                 var lastIndexNewLine = e.RemovedText.Text.LastIndexOf('\n');

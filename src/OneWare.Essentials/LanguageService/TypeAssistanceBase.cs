@@ -106,7 +106,7 @@ namespace OneWare.Essentials.LanguageService
 
             return Task.CompletedTask;
         }
-
+        
         public virtual void TextEntering(TextInputEventArgs e)
         {
         }
@@ -114,6 +114,11 @@ namespace OneWare.Essentials.LanguageService
         public void TextEntered(TextInputEventArgs e)
         {
             _ = TextEnteredAsync(e);
+        }
+
+        public virtual void CaretPositionChanged(int offset)
+        {
+            
         }
 
         public virtual Task<List<MenuItemViewModel>?> GetQuickMenuAsync(int offset)
