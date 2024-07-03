@@ -35,6 +35,8 @@ namespace OneWare.Essentials.LanguageService
     /// </summary>
     public abstract class TypeAssistanceLanguageService : TypeAssistanceBase
     {
+        private readonly IBrush _highlightBackground = SolidColorBrush.Parse("#3300c8ff");
+
         private bool _completionBusy;
         private DispatcherTimer? _dispatcherTimer;
         private TimeSpan _lastCompletionItemChangedTime = DateTime.Now.TimeOfDay;
@@ -549,8 +551,7 @@ namespace OneWare.Essentials.LanguageService
             if (result is not null)
             {
                 var segments = result.Select(x =>
-                        x.Range.GenerateTextModification(Editor.CurrentDocument, null,
-                            SolidColorBrush.Parse("#3300c8ff")))
+                        x.Range.GenerateTextModification(Editor.CurrentDocument, null, _highlightBackground))
                     .ToArray();
                 Editor.Editor.ModificationService.SetModification("caretHighlight", segments);
             }

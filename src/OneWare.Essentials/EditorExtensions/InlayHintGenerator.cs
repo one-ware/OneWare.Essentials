@@ -71,22 +71,28 @@ public class InlayHintGenerator : VisualLineElementGenerator
     
     public override int GetFirstInterestedOffset(int startOffset)
     {
-        var index = _hints.BinarySearch(startOffset, (a, b) => a.CompareTo(b.Anchor.Offset));;
+        // var index = _hints.BinarySearch(startOffset, (a, b) => a.CompareTo(b.Anchor.Offset));;
+        //
+        // if (index < 0)
+        //     index = ~index;
+        // if (index < _hints.Count)
+        // {
+        //     return  _hints[index].Anchor.Offset;
+        // }
+        //
+        // return -1;
         
-        if (index < 0)
-            index = ~index;
-        if (index < _hints.Count)
-        {
-            return  _hints[index].Anchor.Offset;
-        }
-        
-        return -1;
+        var element = _hints.FirstOrDefault(x => !x.Anchor.IsDeleted && x.Anchor.Offset >= startOffset);
+        return element?.Anchor.Offset ?? -1;
     }
 
     public override VisualLineElement? ConstructElement(int offset)
     {
-        var index = _hints.BinarySearch(offset, (a, b) => a.CompareTo(b.Anchor.Offset));
-
-        return index < 0 ? null : new InlineObjectElement(0, _hints[index].Control);
+        // var index = _hints.BinarySearch(offset, (a, b) => a.CompareTo(b.Anchor.Offset));
+        //
+        // return index < 0 ? null : new InlineObjectElement(0, _hints[index].Control);
+        
+        var element = _hints.FirstOrDefault(x => !x.Anchor.IsDeleted && x.Anchor.Offset == offset);
+        return element != null ? new InlineObjectElement(0, element.Control) : null;
     }
 }

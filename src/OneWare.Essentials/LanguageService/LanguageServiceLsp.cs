@@ -513,7 +513,7 @@ namespace OneWare.Essentials.LanguageService
             }
             catch (Exception e)
             {
-                ContainerLocator.Container.Resolve<ILogger>()?.Error(e.Message, e);
+                ContainerLocator.Container.Resolve<ILogger>()?.Error(e.Message, e, false);
             }
 
             return null;
