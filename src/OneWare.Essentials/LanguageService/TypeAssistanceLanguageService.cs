@@ -155,7 +155,7 @@ namespace OneWare.Essentials.LanguageService
             base.OnAssistanceDeactivated();
             Editor.Editor.ModificationService.ClearModification("caretHighlight");
             Editor.Editor.ModificationService.ClearModification("semanticTokens");
-            Editor.Editor.InlayHintRenderer.ClearInlineHints();
+            Editor.Editor.InlayHintGenerator.ClearInlineHints();
         }
 
         protected virtual void DocumentChanged(object? sender, DocumentChangeEventArgs e)
@@ -598,15 +598,15 @@ namespace OneWare.Essentials.LanguageService
 
             if (inlayHintContainer is not null)
             {
-                Editor.Editor.InlayHintRenderer.SetInlineHints(inlayHintContainer.Select(x => new InlayHint()
+                Editor.Editor.InlayHintGenerator.SetInlineHints(inlayHintContainer.Select(x => new InlayHint()
                 {
-                    Location = new TextLocation(x.Position.Line + 1, x.Position.Character + 1),
+                    Offset = Editor.CurrentDocument.GetOffset(x.Position.Line+1, x.Position.Character+1),
                     Text = x.Label.ToString()
                 }));
             }
             else
             {
-                Editor.Editor.InlayHintRenderer.ClearInlineHints();
+                Editor.Editor.InlayHintGenerator.ClearInlineHints();
             }
         }
 

@@ -25,7 +25,7 @@ public class ExtendedTextEditor : TextEditor
    // private ElementGenerator ElementGenerator { get; }
     public FoldingManager? FoldingManager { get; private set; }
     
-    public InlayHintRenderer InlayHintRenderer { get; }
+    public InlayHintGenerator InlayHintGenerator { get; }
     
     public ExtendedTextEditor()
     {
@@ -51,7 +51,7 @@ public class ExtendedTextEditor : TextEditor
         WordRenderer = new WordHighlightRenderer(TextArea.TextView);
         MarkerService = new TextMarkerService(Document);
         ModificationService = new TextModificationService(TextArea.TextView);
-        InlayHintRenderer = new InlayHintRenderer(this);
+        InlayHintGenerator = new InlayHintGenerator(this);
         
         TextArea.TextView.BackgroundRenderers.Add(BracketRenderer);
         TextArea.TextView.BackgroundRenderers.Add(LineRenderer);
@@ -61,7 +61,7 @@ public class ExtendedTextEditor : TextEditor
 
         TextArea.TextView.LineTransformers.Add(ModificationService);
         //TextArea.TextView.ElementGenerators.Add(ElementGenerator);
-        TextArea.TextView.ElementGenerators.Add(InlayHintRenderer);
+        TextArea.TextView.ElementGenerators.Add(InlayHintGenerator);
     }
 
     protected override void OnDocumentChanged(DocumentChangedEventArgs e)
